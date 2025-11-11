@@ -1,0 +1,1168 @@
+<html><head><title>결의서등록 - 청구(일반)</title>
+<meta http-equiv="content-type" content="text/html;charset=euc-kr">
+<meta name="description" content="">
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE8"/>
+<link rel="stylesheet" type="text/css" href="/css/common.css" >
+<script language="JavaScript" src="/js/embedControl.js"></script>
+<script language="javascript" src="/js/common.js"></script>
+<script language="javascript" src="/js/job.js"></script>
+<!-----------------------------------------------------------
+				/* 공통모듈 JavaScript */ 
+------------------------------------------------------------->
+<script language="JavaScript">
+<!--
+	var detlDsCls = "";			//상세내역 dataSet 구분
+	var geomtoCnt = Number(getSettingDataCo("1","1000","KYEOL_GEOMTO_STEP_CNT"));
+	/**************************************************************************
+		▶ 버튼
+	***************************************************************************/
+	function init(){
+		btnControlCo(searchOn, cancelOn, saveOn, insertOn, deleteOn, excelOn, printOn);	
+ 		menuBarInfoView();
+		getJeungbingKndCo(); 			//증빙종류
+		getDataSetHeaders();			//DataSet 헤더 만들기
+ 		radio_sawon_buseo_cls.CodeValue = "1";
+		insert();
+ 		setSetting();
+ 		if(commonWpId==1065) grd_detl.ColumnProp("bigo2", "Show") = "true";
+ 		if(commonWpId==113||commonWpId==1075||commonWpId==1065) file_control.FileFilterString = "1";
+	}
+	
+	// 취소
+	function cancel(){
+//showDataSetCo(DataSetBaSetting,"DataSetBaSetting");
+//showDataSetCo(DataSetBaKyeoluiseo,"DataSetBaKyeoluiseo");
+//showDataSetCo(DataSetBaKyeoluiseoDetl,"DataSetBaKyeoluiseoDetl");
+        DataSetBaKyeoluiseo.Undo(DataSetBaKyeoluiseo.RowPosition);
+        DataSetBaKyeoluiseoDetl.Undo(DataSetBaKyeoluiseoDetl.RowPosition);
+	}
+
+	//삽입
+	function insert() {
+		DataSetBaKyeoluiseo.ClearData();
+		DataSetBaKyeoluiseoDetl.ClearData();
+		removeCtrlData();
+        DataSetBaKyeoluiseo.AddRow();
+        setInitControlCo(1);        		//초기값 셋팅(파라미터 값은 초기 focus 순서)
+	    pilsuColorChangeCo();
+		if(isNullCo(txt_u_jakseongja_cd.value)){
+			txt_u_jakseongja_cd.value = DataSetBaCommon.NameValue(1,"u_sawon_cd");
+			txt_jakseongja_nm.value = DataSetBaCommon.NameValue(1,"sawon_nm");
+		}	
+		em_baluiil.Text = commonToday;
+		luxe_kyeoljae_cls.index = 0;
+        makeUpmuNo();
+		insertDetl();
+		setDefaultBuseoCo();
+		setKyeoljaeja();
+		btn_jongjeon_kyeol_popup.disabled = false;
+	}
+	
+	//행추가 - 수주내역 행만 추가
+	function insertDetl(){
+		if(DataSetBaKyeoluiseo.CountRow==0){
+			alert("  결의서 마스터정보가 없습니다.  ");
+			return;
+		}
+        if(checkNotNullGridAndFocusCo(DataSetBaKyeoluiseoDetl,grd_detl)){
+            DataSetBaKyeoluiseoDetl.AddRow();
+            DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"seungin_cls") = "1";
+            DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"u_jeungbing_cd") = "0";
+        }
+    }    
+	
+
+	// 저장
+	function save(){
+		if(DataSetBaKyeoluiseo.CountRow==0){
+			alert(" 결의서 마스터정보가 없습니다.  \n\n  추가하거나 검색하세요! ");
+			return;
+		}
+		if(DataSetBaKyeoluiseoDetl.CountRow==0){
+			alert(" 결의서 상세정보가 하나도 없습니다.  \n\n 결의서에는 하나 이상의 상세정보가 필요합니다! ");
+			return;
+		}
+		var kCls = DataSetBaKyeoluiseo.OrgNameValue(1,"kyeoljae_cls");
+		if(kCls!="0"){
+			alert(" 결재된 결의서는 수정할 수 없습니다. \n\n 확인하시기 바랍니다. ");
+			return;
+		}
+		var acCls = "";
+        for(var i=1;i<=DataSetBaKyeoluiseoDetl.CountRow; i++){
+        	acCls = DataSetBaKyeoluiseoDetl.NameValue(i,"acct_cheori_cls");
+        	if((acCls=="1")&&(DataSetBaKyeoluiseoDetl.SysStatus(i)==3)){ 
+        		alert(i+" 번째행 데이터는 회계처리되어 있어 수정할 수 없습니다. \n\n 확인하시기 바랍니다. ");
+        		DataSetBaKyeoluiseoDetl.RowPostion = i;
+        		return;
+        	}
+    	}
+        if(checkNotNullAndFocusCo(DataSetBaKyeoluiseo)){
+			if(isNullCo(em_cheongguil.Text)){
+				alert(" 청구일을 입력하세요. ");
+				return;
+			}	
+			var beforeDay = addDateCo(em_baluiil.Text,-90);
+			var afterDay  = addDateCo(em_baluiil.Text,90);
+			if((em_cheongguil.Text<=beforeDay)||(em_cheongguil.Text>afterDay)){
+				if(confirm(" 발의일과 청구일이 90일 이상 차이납니다. \n\n 그래도 저장하시겠습니까? ")==false){
+					em_cheongguil.focus();
+					return;
+				}				
+			}
+			if(checkNotNullGridAndFocusCo(DataSetBaKyeoluiseoDetl,grd_detl)){
+				//결의서구분: 청구(일반)(201), 청구일, 회계처리구분: 미처리(0) setting
+				DataSetBaKyeoluiseo.NameValue(1,"kyeoluiseo_cls") = "201";
+		        for(var i=1;i<=DataSetBaKyeoluiseoDetl.CountRow; i++){
+		        	DataSetBaKyeoluiseoDetl.NameValue(i,"jichul_s_il") = em_cheongguil.Text;
+		        	if(isNullCo(DataSetBaKyeoluiseoDetl.NameValue(i,"acct_cheori_cls"))) DataSetBaKyeoluiseoDetl.NameValue(i,"acct_cheori_cls") = "0";
+		        	DataSetBaKyeoluiseoDetl.NameValue(i,"u_mgt_item_cd") = txt_u_mgt_item_cd.value;
+					DataSetBaKyeoluiseoDetl.NameValue(i,"u_proj_cd") = txt_u_proj_cd.value;
+					DataSetBaKyeoluiseoDetl.NameValue(i,"sawon_buseo_cls") = radio_sawon_buseo_cls.CodeValue;
+					DataSetBaKyeoluiseoDetl.NameValue(i,"u_sawon_buseo_cd") = txt_u_sawon_buseo_cd.value;
+		        }
+				var params = "jobId=JobBaKyeoluiseo,kyeolSeqStr="+DataSetBaKyeoluiseo.NameValue(DataSetBaKyeoluiseo.RowPosition,"kyeoluiseo_seq");
+				params = params + ",kyeoluiseoCls=201";
+				params = params + ",totAmt="+DataSetBaKyeoluiseoDetl.NameSum("amt",0,0);
+				params = params + ",uGeomtojaCd="+DataSetBaKyeoluiseo.NameValue(1,"u_geomtoja_cd");
+				params = params + ",uGeomtoja2Cd="+DataSetBaKyeoluiseo.NameValue(1,"u_geomtoja2_cd");
+				params = params + ",uSeunginjaCd="+DataSetBaKyeoluiseo.NameValue(1,"u_seunginja_cd");
+				params = params + ",baluiil="+DataSetBaKyeoluiseo.NameValue(1,"baluiil");
+				//alert(params);
+	        	tr_all_u.Parameters = params;
+	        	tr_all_u.post();
+	        }	
+		}
+	}
+	
+	// 조회
+	function search() {	
+		getKyeoluiseo();
+	}
+	
+    //삭제 : 결의서정보와 결의서상세내역 전부를 삭제
+    function remove() {
+        if (DataSetBaKyeoluiseo.CountRow==0) return;
+		var kCls = DataSetBaKyeoluiseo.OrgNameValue(1,"kyeoljae_cls");
+		if(kCls!="0"){
+			alert(" 결재된 결의서는 삭제할 수 없습니다. \n\n 확인하시기 바랍니다. ");
+			return;
+		}
+		var acCls = "";
+        for(var i=1;i<=DataSetBaKyeoluiseoDetl.CountRow; i++){
+        	acCls = DataSetBaKyeoluiseoDetl.NameValue(i,"acct_cheori_cls");
+        	if(acCls=="1"){ 
+        		alert("회계처리된 데이터가 있어 삭제할 수 없습니다. \n\n 확인하시기 바랍니다. ");
+        		return;
+        	}
+    	}
+        var kyeoluiseoSeq = DataSetBaKyeoluiseo.NameValue(DataSetBaKyeoluiseo.RowPosition,"kyeoluiseo_seq");
+        if(DataSetBaKyeoluiseo.SysStatus(DataSetBaKyeoluiseo.RowPosition)!=1){
+            if (confirm("결의서정보를 삭제하시겠습니까?")==false) return;
+            else{
+                DataSetBaKyeoluiseo.DeleteRow(DataSetBaKyeoluiseo.RowPosition);
+	        	tr_main_u.Parameters = "jobId=JobBaKyeoluiseo,kyeolSeqStr="+kyeoluiseoSeq;
+	        	tr_main_u.post();
+            }
+        }else{
+            alert("저장된 결의서정보만 삭제가 가능합니다.");
+            return;
+        }
+    }
+    
+    //행삭제 - 상세내역만 삭제
+    function removeDetl(){
+        if (DataSetBaKyeoluiseoDetl.CountRow==0) return;
+		var kCls = DataSetBaKyeoluiseo.OrgNameValue(1,"kyeoljae_cls");
+		if(kCls!="0"){
+			alert(" 결재된 결의서는 삭제할 수 없습니다. \n\n 확인하시기 바랍니다. ");
+			return;
+		}
+		var acCls = DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"acct_cheori_cls");
+        if(acCls=="1"){ 
+    		alert("회계처리된 데이터는 삭제할 수 없습니다. \n\n 확인하시기 바랍니다. ");
+    		return;
+    	}
+		if(DataSetBaKyeoluiseoDetl.CountRow==1){
+			alert(" 삭제시 결의서 상세정보가 모두 없어집니다. \n\n 결의서에는 하나 이상의 상세정보가 필요합니다! ");
+			return;
+		}
+		if(DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"seungin_cls")!="1"){
+			errorMsgToTitleBarCo("승인구분이 미결인 경우만 삭제할 수 있습니다!");
+			return;
+		}	
+        if(DataSetBaKyeoluiseoDetl.SysStatus(DataSetBaKyeoluiseoDetl.RowPosition)==1){
+            DataSetBaKyeoluiseoDetl.DeleteRow(DataSetBaKyeoluiseoDetl.RowPosition);
+        }else if(confirm('선택한 결의서 상세내역 데이터를 삭제하시겠습니까?')){
+            DataSetBaKyeoluiseoDetl.DeleteRow(DataSetBaKyeoluiseoDetl.RowPosition);
+	        tr_detl_u.Parameters = "jobId=JobBaKyeoluiseo";
+	        tr_detl_u.post();
+        }else  return;
+	}	
+    
+    
+	// excel
+	function excel() {
+       	grd_detl.GridToExcel('결의서명세','결의서명세',2);
+	}
+
+	// print
+	function print(){
+		if(DataSetBaKyeoluiseo.CountRow==0) return;
+		var pyosiUse = getSettingDataCo("1","1000","KYEOL_KYEOLJAE_PYOSI_USE");
+		//var geomtoCnt = Number(getSettingDataCo("1","1000","KYEOL_GEOMTO_STEP_CNT"));
+		if(pyosiUse=="true"){
+			getKyeoljaePyosi();
+			if((geomtoCnt+2)!=DataSetBa507RU.CountRow){
+				alert(" [사업장설정]에서 설정한 결재란 갯수와  [결재란등록]에서 등록한 갯수가 틀립니다. ");
+				return;
+			}
+		}	
+		prnKyeoluiseo.Format = makeReportFormat(pyosiUse,geomtoCnt);
+		prnKyeoluiseo.Preview();
+	}
+	
+	//결재 단계별명칭 가져오기
+	function getKyeoljaePyosi(){
+		tr_ba507r.Parameters = "jobId=JobBa507,uClsCd=101";
+		tr_ba507r.post();
+	}
+
+	//리포트 포맷 만들기
+	function makeReportFormat(pyosiUse,geomtoCnt){
+		//결재 단계별명칭 정하기
+		var damdang = "담 당", geomto ="검 토", geomto2 = "검 토2", seungin = "승 인";
+		if(pyosiUse=="true"){
+			damdang = DataSetBa507RU.NameValue(1,"pyosi");
+			geomto =  DataSetBa507RU.NameValue(2,"pyosi");
+			if     (DataSetBa507RU.CountRow==3) seungin = DataSetBa507RU.NameValue(3,"pyosi");
+			else if(DataSetBa507RU.CountRow==4){
+				geomto2 = DataSetBa507RU.NameValue(3,"pyosi");
+				seungin = DataSetBa507RU.NameValue(4,"pyosi");
+			}	
+		}	
+		
+		var rF = "";
+		var rowPos = DataSetBaKyeoluiseo.RowPosition
+		var kCls = DataSetBaKyeoluiseo.NameValue(rowPos,"kyeoluiseo_cls");
+		var kyeoljaeCls = DataSetBaKyeoluiseo.NameValue(rowPos,"kyeoljae_cls");
+		var jakseongId = DataSetBaKyeoluiseo.NameValue(rowPos,"jakseongja_id");
+		var geomtojaId = DataSetBaKyeoluiseo.NameValue(rowPos,"geomtoja_id");
+		var geomtoja2Id = DataSetBaKyeoluiseo.NameValue(rowPos,"geomtoja2_id");
+		var seunginjaId = DataSetBaKyeoluiseo.NameValue(rowPos,"seunginja_id");
+		var jakseongjaImgId = "", geomtojaImgId = "", geomtoja2ImgId = "", seunginjaImgId = "";
+		
+		if(isNotNullCo(jakseongId)) jakseongjaImgId = commonWpId+"_"+jakseongId+"_"+"kyeoljae";
+		if(isNotNullCo(geomtojaId)) geomtojaImgId = commonWpId+"_"+geomtojaId+"_"+"kyeoljae";
+		if(isNotNullCo(geomtoja2Id)) geomtoja2ImgId = commonWpId+"_"+geomtoja2Id+"_"+"kyeoljae";
+		if(isNotNullCo(seunginjaId)) seunginjaImgId = commonWpId+"_"+seunginjaId+"_"+"kyeoljae";
+ 		//alert(geomtojaImgId+"...."+geomtoja2ImgId);
+		
+		// 결재상태 - 미결재
+		if(kyeoljaeCls=="0"){
+			geomtojaImgId = "";
+			geomtoja2ImgId = "";
+			seunginjaImgId = "";
+		//결제상태 - 검토
+		}else if(kyeoljaeCls=="1"){
+			geomtoja2ImgId = "";
+			seunginjaImgId = "";
+		//결제상태 - 검토2
+		}else if(kyeoljaeCls=="A"){
+			seunginjaImgId = "";
+		}
+		//alert(kyeoljaeCls+"  "+jakseongjaImgId+"  "+geomtojaImgId+"  "+seunginjaImgId);
+		
+		rF=rF+"<B>id=DHeader ,left=0,top=0 ,right=2000 ,bottom=952 ,face='굴림' ,size=10 ,penwidth=1";
+		rF=rF+"<T>id='청구일 :' ,left=26 ,top=651 ,right=251 ,bottom=712 ,align='left'</T>";
+		rF=rF+"<C>id='cheonggu_j_il', left=249, top=651, right=487, bottom=712, align='left' ,mask='XXXX-XX-XX'</C>";
+		rF=rF+"<C>id='baluiil', left=249, top=593, right=487, bottom=654, align='left' ,mask='XXXX-XX-XX'</C>";
+		rF=rF+"<T>id='작성(신청)자 :' ,left=714 ,top=593 ,right=945 ,bottom=654 ,align='left'</T>";
+		rF=rF+"<C>id='jakseongja_nm', left=945, top=593, right=1270, bottom=654, align='left'</C>";
+		rF=rF+"<T>id='소속부서 :' ,left=1302 ,top=593 ,right=1471 ,bottom=654 ,align='left'</T>";
+		rF=rF+"<C>id='buseo_nm', left=1471, top=593, right=1884, bottom=654, align='left'</C>";
+		rF=rF+"<T>id='결의서 제목 :' ,left=714 ,top=532 ,right=939 ,bottom=593 ,align='left'</T>";
+		rF=rF+"<C>id='kyeoluiseo_no', left=249, top=532, right=659, bottom=593, align='left'</C>";
+		rF=rF+"<C>id='kyeoluiseo_title', left=945, top=532, right=1632, bottom=593, align='left'</C>";
+		rF=rF+"<L> left=26 ,top=191 ,right=1905 ,bottom=191 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+		rF=rF+"<L> left=26 ,top=516 ,right=1905 ,bottom=516 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+		rF=rF+"<L> left=1640 ,top=191 ,right=1640 ,bottom=516 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+		rF=rF+"<L> left=1111 ,top=191 ,right=1111 ,bottom=516 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+		rF=rF+"<L> left=1905 ,top=191 ,right=1905 ,bottom=516 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+		rF=rF+"<L> left=1376 ,top=191 ,right=1376 ,bottom=516 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+
+		if(geomtoCnt>1){
+			//추가
+			rF=rF+"<L> left=847,top=191 ,right=847,bottom=516 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+			rF=rF+"<T>id='"+damdang+"' ,left=870 ,top=201 ,right=1074 ,bottom=267 ,face='굴림' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
+			//수정
+			rF=rF+"<L> left=847 ,top=273 ,right=1905 ,bottom=273 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+			rF=rF+"<T>id='"+geomto+"' ,left=1143 ,top=198 ,right=1347 ,bottom=265 ,face='굴림' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
+			rF=rF+"<T>id='"+geomto2+"' ,left=1410 ,top=198 ,right=1614 ,bottom=265 ,face='굴림' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
+			rF=rF+"<T>id=' 지  출  결  의  서 ' ,left=169 ,top=233 ,right=643 ,bottom=304 ,face='굴림' ,size=14 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
+			rF=rF+"<C>id={'('&decode(kyeoluiseo_cls,'101','일반지출','102','결제지출','103','직불카드','201','일반청구','202','법인신용카드','203','임직원지출','301','선급정산','302','가지급정산')&')'}, left=164, top=325, right=640, bottom=392, face='굴림', size=11, bold=false, underline=false, italic=false, forecolor=#000000, backcolor=#FFFFFF</C>";
+			rF=rF+"<I>id='http://www.goodmansoft.net/images/sign/"+jakseongjaImgId+"',left=876 ,top=291 ,right=1090 ,bottom=464</I>";
+														rF=rF+"<C>id='jakseongja_nm', left=876, top=465, right=1090, bottom=505</C>";
+			rF=rF+"<I>id='http://www.goodmansoft.net/images/sign/"+geomtojaImgId+"',left=1140 ,top=291 ,right=1355 ,bottom=464</I>";
+			if((kyeoljaeCls=="1")||(kyeoljaeCls=="A")||(kyeoljaeCls=="2")) rF=rF+"<C>id='geomtoja_nm'  ,left=1140, top=465, right=1355, bottom=505</C>";
+			rF=rF+"<I>id='http://www.goodmansoft.net/images/sign/"+geomtoja2ImgId+"' ,left=1405 ,top=291 ,right=1619 ,bottom=464</I>";
+			if((kyeoljaeCls=="A")||(kyeoljaeCls=="2")) rF=rF+"<C>id='geomtoja2_nm'   ,left=1405, top=465, right=1619, bottom=505</C>";
+		}else{
+			rF=rF+"<L> left=1111 ,top=273 ,right=1905 ,bottom=273 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+			rF=rF+"<T>id='"+damdang+"' ,left=1143 ,top=198 ,right=1347 ,bottom=265 ,face='굴림' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
+			rF=rF+"<T>id='"+geomto+"' ,left=1410 ,top=198 ,right=1614 ,bottom=265 ,face='굴림' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
+			rF=rF+"<T>id=' 지  출  결  의  서 ' , left=328 ,top=233 ,right=802 ,bottom=304, face='굴림' ,size=14 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
+			rF=rF+"<C>id={'('&decode(kyeoluiseo_cls,'101','일반지출','102','결제지출','103','직불카드','201','일반청구','202','법인신용카드','203','임직원지출','301','선급정산','302','가지급정산')&')'}, left=323, top=325, right=799, bottom=392, face='굴림', size=11, bold=false, underline=false, italic=false, forecolor=#000000, backcolor=#FFFFFF</C>";
+			rF=rF+"<I>id='http://www.goodmansoft.net/images/sign/"+jakseongjaImgId+"',left=1140 ,top=291 ,right=1355 ,bottom=464</I>";
+														rF=rF+"<C>id='jakseongja_nm', left=1140, top=465, right=1355, bottom=505</C>";
+			rF=rF+"<I>id='http://www.goodmansoft.net/images/sign/"+geomtojaImgId+"' ,left=1405 ,top=291 ,right=1619 ,bottom=464</I>";
+			if((kyeoljaeCls=="1")||(kyeoljaeCls=="A")||(kyeoljaeCls=="2"))	rF=rF+"<C>id='geomtoja_nm'  ,left=1405, top=465, right=1619, bottom=505</C>";
+		}
+		
+		rF=rF+"<T>id='"+seungin+"' ,left=1672 ,top=198 ,right=1876 ,bottom=265 ,face='굴림' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
+		rF=rF+"<L> left=26 ,top=191 ,right=26 ,bottom=516 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+		rF=rF+"<T>id='비  고' ,left=1619 ,top=881 ,right=1905 ,bottom=947</T>";
+		rF=rF+"<T>id='합    계' ,left=1402 ,top=881 ,right=1614 ,bottom=947</T>";
+		rF=rF+"<T>id='부가세' ,left=1183 ,top=881 ,right=1394 ,bottom=947</T>";
+		rF=rF+"<T>id='금  액' ,left=960 ,top=881 ,right=1172 ,bottom=947</T>";
+		rF=rF+"<T>id='내  역' ,left=609 ,top=881 ,right=953 ,bottom=947</T>";
+		rF=rF+"<T>id='증빙종류' ,left=331 ,top=881 ,right=601 ,bottom=947</T>";
+		rF=rF+"<L> left=29 ,top=953 ,right=1908 ,bottom=953 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+		rF=rF+"<T>id='거래처' ,left=29 ,top=881 ,right=323 ,bottom=947</T>";
+		rF=rF+"<L> left=29 ,top=873 ,right=1908 ,bottom=873 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+		rF=rF+"<T>id='발의일 :' ,left=26 ,top=593 ,right=225 ,bottom=654 ,align='left'</T>";
+		rF=rF+"<T>id='결의서 번호 :' ,left=26 ,top=532 ,right=251 ,bottom=593 ,align='left'</T>";
+		rF=rF+"<I>id='http://www.goodmansoft.net/images/sign/"+seunginjaImgId+"' ,left=1672 ,top=291 ,right=1886 ,bottom=464</I>";
+		if((kyeoljaeCls=="2"))	rF=rF+"<C>id='seunginja_nm' 					 ,left=1672, top=465, right=1886, bottom=505</C>";
+		rF=rF+"</B>";
+		rF=rF+"<B>id=default ,left=0,top=0 ,right=2000 ,bottom=87 ,face='Arial' ,size=10 ,penwidth=1";
+		rF=rF+"<L> left=29 ,top=82 ,right=1908 ,bottom=82 ,penstyle=dot ,penwidth=1 ,pencolor=#C0C0C0 </L>";
+		rF=rF+"<C>id='bigo', left=1619, top=5, right=1905, bottom=77, align='left', Multiline=true</C>";
+		rF=rF+"<C>id='amt_sum', left=1400, top=5, right=1611, bottom=77, align='right', Decao=0</C>";
+		rF=rF+"<C>id='bugase', left=1180, top=5, right=1392, bottom=77, align='right', Decao=0</C>";
+		rF=rF+"<C>id='amt', left=958, top=5, right=1169, bottom=77, align='right', Decao=0</C>";
+		rF=rF+"<C>id='naeyeok', left=606, top=5, right=950, bottom=77, align='left', Multiline=true</C>";
+		rF=rF+"<C>id='jeungbing_nm', left=328, top=5, right=598, bottom=77, align='left'</C>";
+		rF=rF+"<C>id='clnt_nm', left=26, top=5, right=320, bottom=77, align='left', Multiline=true</C>";
+		rF=rF+"</B>";
+		rF=rF+"<B>id=LDFooter ,left=0,top=0 ,right=2000 ,bottom=259 ,face='Arial' ,size=10 ,penwidth=1";
+		rF=rF+"<L> left=29 ,top=177 ,right=1908 ,bottom=177 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+		rF=rF+"<L> left=29 ,top=3 ,right=1908 ,bottom=3 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+		rF=rF+"<C>id='wp_nm', left=26, top=180, right=725, bottom=246, align='left'</C>";
+		rF=rF+"<L> left=29 ,top=79 ,right=1908 ,bottom=79 ,penstyle=solid ,penwidth=3 ,pencolor=#000000 </L>";
+		rF=rF+"<T>id='프로젝트 :' ,left=1230 ,top=95 ,right=1389 ,bottom=161 ,align='left'</T>";
+		rF=rF+"<T>id='사원부서 :' ,left=619 ,top=95 ,right=778 ,bottom=161 ,align='left'</T>";
+		rF=rF+"<C>id='sawon_buseo_nm', left=781, top=95, right=1172, bottom=161, align='left'</C>";
+		rF=rF+"<C>id='mgt_item_nm', left=191, top=95, right=561, bottom=161, align='left'</C>";
+		rF=rF+"<T>id='관리항목 :' ,left=26 ,top=95 ,right=185 ,bottom=161 ,align='left'</T>";
+		rF=rF+"<C>id='proj_nm', left=1394, top=95, right=1873, bottom=161, align='left'</C>";
+		rF=rF+"<S>id='{sum(amt_sum)}' ,left=1400 ,top=11 ,right=1611 ,bottom=77 ,align='right', Decao=0</S>";
+		rF=rF+"<S>id='{Sum(bugase)}' ,left=1180 ,top=11 ,right=1392 ,bottom=77 ,align='right', Decao=0</S>";
+		rF=rF+"<S>id='{Sum(amt)}' ,left=958 ,top=11 ,right=1169 ,bottom=77 ,align='right', Decao=0</S>";
+		rF=rF+"<T>id='합    계' ,left=333 ,top=11 ,right=545 ,bottom=77 ,face='Arial' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
+		rF=rF+"</B>";
+		
+		//공통포맷
+		rF=rF+"<B>id=Footer ,left=0 ,top=2722 ,right=2000 ,bottom=2870 ,face='Arial' ,size=10 ,penwidth=1";
+		rF=rF+"<T>id='#t' ,left=1775 ,top=95 ,right=1849 ,bottom=148 ,face='굴림' ,size=10 ,bold=false ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
+		rF=rF+"<T>id='/' ,left=1746 ,top=95 ,right=1775 ,bottom=148 ,face='굴림' ,size=10 ,bold=false ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
+		rF=rF+"<T>id='#p' ,left=1672 ,top=95 ,right=1746 ,bottom=148 ,face='굴림' ,size=10 ,bold=false ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
+		rF=rF+"</B>";
+		
+		return rF;
+	}
+
+	/***************************************************************************
+		▶ 조회
+	***************************************************************************/
+    // DataSet 헤더만들기
+    function getDataSetHeaders(){
+        tr_all_r.Parameters = "jobId=JobBaKyeoluiseo,johoeCls=dataSetHeader";
+        tr_all_r.post();
+	}
+	
+    // 결의서 data 조회
+    function getKyeoluiseo(){
+    	detlDsCls = "search";
+    	var kyeoluiseoNo = txt_kyeoluiseo_no.value
+    	DataSetBaKyeoluiseo.ClearData();
+        DataSetBaKyeoluiseoDetl.ClearData();
+        removeCtrlData();
+		if(isNullCo(kyeoluiseoNo)){
+			 txt_kyeoluiseo_no.focus();
+			 return;
+		}	 
+        tr_kyeoluiseo_r.Parameters = "jobId=JobBaKyeoluiseo,johoeCls=kyeoluiseo,kyeoluiseoNo="+kyeoluiseoNo;
+        tr_kyeoluiseo_r.post();
+        //em_baluiil.Text = DataSetBaKyeoluiseo.NameValue(DataSetBaKyeoluiseo.RowPosition, "yyyymmdd");
+   		btn_jongjeon_kyeol_popup.disabled = true;
+    }
+    
+    // 결의서내역 data 조회
+    function getKyeoluiseoDetl(kyeolSeq){
+    	if(isNullCo(kyeolSeq)) kyeolSeq = DataSetBaKyeoluiseo.NameValue(DataSetBaKyeoluiseo.RowPosition,"kyeoluiseo_seq");
+        tr_detl_r.Parameters = "jobId=JobBaKyeoluiseo,johoeCls=kyeoluiseoDetl,kyeoluiseoSeq="+kyeolSeq;
+        tr_detl_r.post();
+    }
+    
+	//결의서 결재설정정보 가져오기    
+	function getKyeoljaeSettingInfo(){
+		var params = "jobId=JobBaSetting,johoeCls=kyeoljaeSettingInfo,userId=1,settingId=KYEOLJAE_CHEONGGU_ILBAN_KYEOL";
+	    tr_setting_r.Parameters = params;
+	    tr_setting_r.post();
+	}
+		
+	/***************************************************************************
+		▶ 기타
+	***************************************************************************/
+	//업무순번 만들기
+	function makeUpmuNo(){
+		DataSetBaShortStr.ClearData();
+        tr_kyeoluiseo_no_r.Parameters = "jobId=JobBaSelect2,daoId=makeUpmuNo:upmu=결의서:theDay="+em_baluiil.Text+":seqCnt=3";
+        tr_kyeoluiseo_no_r.post();
+        DataSetBaKyeoluiseo.NameValue(DataSetBaKyeoluiseo.RowPosition,"kyeoluiseo_no")= DataSetBaShortStr.NameValue(1,"str");
+	}
+
+    // 합계
+    function setSumText(){
+        DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"amt_sum") = DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"amt")+DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"bugase");
+    }
+	
+	//부가세 관련 추가정보 지우기
+	function removeChugaInfo(){
+        DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"u_jijeom_cd") = "";
+        DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"saeopja_no") = "";
+        DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"u_card_cd") = "";
+        DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"card_nm") = "";
+        DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"seungin_no") = "";
+	}
+	
+	//지점 갯수 가져오기
+	function getJijeomCnt() {
+		tr_jijeom_cnt_r.Parameters = "jobId=JobBaJijeom, johoeCls=jijeomCnt";
+		tr_jijeom_cnt_r.post();
+		return DataSetBaNum.NameValue(1,"num");
+	}
+	
+	//컨트롤에 있는 데이터 지우기
+	function removeCtrlData(){
+		em_cheongguil.Text = "";
+		txt_u_mgt_item_cd.value = "";
+		txt_mgt_item_nm.value = "";
+		txt_u_proj_cd.value = "";
+		txt_proj_nm.value = "";
+		radio_sawon_buseo_cls.CodeValue="1";
+		txt_u_sawon_buseo_cd.value = "";
+		txt_sawon_buseo_nm.value = "";
+	}	
+
+	//사원부서 default 값 -- 작성자
+	function setDefaultSawonOrBuseo(){
+		if(isNullCo(txt_u_sawon_buseo_cd.value)){
+			txt_u_sawon_buseo_cd.value =  txt_u_jakseongja_cd.value;
+			txt_sawon_buseo_nm.value = txt_jakseongja_nm.value;
+	 		radio_sawon_buseo_cls.CodeValue = "1";
+	 	}	
+	}
+	
+	function setSetting(){
+ 		if(getSettingDataCo("1","7000","KYEOL_CHEOMBU_FILE_FUNC")=="T") grd_detl.ColumnProp("url_str", "Show") = true;	//사업장 설정data 가져오기(userId, knd, settingId,wpId)
+ 		//var cnt = getSettingDataCo("1","1000","KYEOL_GEOMTO_STEP_CNT");
+ 		
+ 		if(geomtoCnt==1){
+ 			td_geomtoja2_1.style.display = "none";
+ 			td_geomtoja2_2.style.display = "none";
+ 		}else if(geomtoCnt>1){
+ 			td_geomtoja2_1.style.display = "inline";
+ 			td_geomtoja2_2.style.display = "inline";
+ 		}
+	}
+	
+	function setKyeoljaeja(){
+ 		getKyeoljaeSettingInfo();
+		if(DataSetBaSetting.CountRow>0){
+			if(isNotNullCo(DataSetBaSetting.NameValue(1,"value_01"))){
+	 			txt_u_geomtoja_cd.value = DataSetBaSetting.NameValue(1,"value_01");
+	 			txt_geomtoja_nm.value = DataSetBaSetting.NameValue(1,"value_01_bigo");
+	 			btn_geomtoja.disabled = true;
+				txt_u_geomtoja_cd.readOnly = true;
+	 			txt_geomtoja_nm.readOnly = true;
+	 	 	}
+			if(isNotNullCo(DataSetBaSetting.NameValue(1,"value_05"))){
+	 			txt_u_seunginja_cd.value = DataSetBaSetting.NameValue(1,"value_05");
+	 			txt_seunginja_nm.value = DataSetBaSetting.NameValue(1,"value_05_bigo");
+	 			btn_seunginja.disabled = true;
+				txt_u_seunginja_cd.readOnly = true;
+	 			txt_seunginja_nm.readOnly = true;
+	 		}
+ 			if((geomtoCnt>1)&&isNotNullCo(DataSetBaSetting.NameValue(1,"value_03"))){
+	 			txt_u_geomtoja2_cd.value = DataSetBaSetting.NameValue(1,"value_03");
+	 			txt_geomtoja2_nm.value = DataSetBaSetting.NameValue(1,"value_03_bigo");
+	 			btn_geomtoja2.disabled = true;
+				txt_u_geomtoja2_cd.readOnly = true;
+	 			txt_geomtoja2_nm.readOnly = true;
+	 		}
+		}
+	}
+	
+    // 종전결의서 조회후 상세내역 data Setting
+    function setDataSetDetl(paraObj){
+    	DataSetBaKyeoluiseoDetl.ClearData();
+        for(var i=1;i<=paraObj.uClntCd.length; i++){
+        	DataSetBaKyeoluiseoDetl.AddRow();
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"seungin_cls") = "1";			//미결
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"acct_cheori_cls") = "0";		//미처리
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"u_clnt_cd") = paraObj.uClntCd[i-1];
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"clnt_nm") = paraObj.clntNm[i-1];
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"u_jeungbing_cd") = paraObj.uJeungbingCd[i-1] ;
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"jeungbing_nm") = paraObj.jeungbingNm[i-1];
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"amt") = paraObj.amt[i-1];
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"bugase") = paraObj.bugase[i-1];
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"amt_sum") = paraObj.amtSum[i-1];
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"naeyeok_cd") = paraObj.naeyeokCd[i-1];
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"u_naeyeok_cd") = paraObj.uNaeyeokCd[i-1];
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"naeyeok") = paraObj.naeyeok[i-1];
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"m_cls") = paraObj.mCls[i-1];
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"m_knd") = paraObj.mKnd[i-1];
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"g_iss_cls") = paraObj.gIssCls[i-1];
+        	DataSetBaKyeoluiseoDetl.NameValue(i,"bigo") = paraObj.bigo[i-1];
+    	}
+	}
+	
+	/***************************************************************************
+		▶ 팝업
+	***************************************************************************/
+    function winPopup(gubun) {
+        var winObj;
+        var popupParam;
+        switch(gubun) {
+            case 1:  //결의서번호 리스트 
+				popupParam = new Popup3ParamCo("201",txt_u_jakseongja_cd.value,txt_jakseongja_nm.value);
+                winObj = getKyeoluiseoPopupCo(popupParam);
+                break;
+            case 2:  //작성자
+                winObj = sawonPopupCo(null);
+                break;
+            case 4:  //검토자
+           		popupParam = new Popup3ParamCo("sawonList","all","");
+                winObj = sawonPopupCo(popupParam);
+                break;
+            case 5:  //승인자
+           		popupParam = new Popup3ParamCo("sawonList","all","");
+                winObj = sawonPopupCo(popupParam);
+                break;
+            case 6: //관리항목	
+				popupParam = new PopupParamCo("");
+				winObj     = mgtItemPopupCo(popupParam);
+            	break;
+            case 7:  //프로젝트
+                winObj = projPopupCo(null);
+                break;  
+            case 8:  //사원부서
+                if(radio_sawon_buseo_cls.CodeValue=="1")  		winObj = sawonPopupCo(null);
+                else if(radio_sawon_buseo_cls.CodeValue=="2")	winObj = buseoPopupCo(null);
+                break;
+            case 9: //거래처
+                winObj = winPopupCo("10","0","0");
+                break;
+			case 10: //내역등록 - 파라미터 : 결의서구분,사원코드,사원명
+				popupParam = new Popup3ParamCo("201",txt_u_jakseongja_cd.value,txt_jakseongja_nm.value);
+		        winObj = regNaeyeokPopupCo(popupParam);
+				break;
+			case 11: //계산서 추가정보
+				var uClntCd = DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"u_clnt_cd");
+				var uJeungbingCd = DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"u_jeungbing_cd");
+				var uJijeomCd = DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"u_jijeom_cd");
+                var saeopjaNo = DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"saeopja_no");
+                var uCardCd = DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"u_card_cd");
+                var cardNm = DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"card_nm");
+                var seunginNo = DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"seungin_no");
+                //alert(uJbCd+" "+uJijeomCd+" "+saeopjaNo+" "+uCardCd+" "+cardNm+" "+seunginNo+" ");
+                //파라미터 : 매매구분(2:매입),거래처코드,증빙코드,지점수,지점코드,사업자번호,카드코드,카드명,승인번호
+				popupParam = new popupParamsCo("2",uClntCd,uJeungbingCd,getJijeomCnt(),uJijeomCd,saeopjaNo,uCardCd,cardNm,seunginNo);
+		        winObj = gyesanseoChugaPopupCo(popupParam);
+				break;
+            case 12:  //검토자2
+           		popupParam = new Popup3ParamCo("sawonList","all","");
+                winObj = sawonPopupCo(popupParam);
+                break;
+            case 13:  //종전결의서 팝업 
+            	var paraObj = new Object();
+            	paraObj.kyeoluiseoCls = "201";
+            	paraObj.uJakseongjaCd = txt_u_jakseongja_cd.value;
+            	paraObj.jakseongjaNm = txt_jakseongja_nm.value;
+                winObj = jongjeonKyeoluiseoPopupCo(paraObj);  //
+                break;
+            default :
+        }//
+        
+        if(typeof(winObj)=="object"){
+            switch(gubun) {
+                case 1: //결의서번호 리스트
+                    txt_kyeoluiseo_no.value = winObj.kyeoluiseo_no;
+                    getKyeoluiseo();
+                    break;
+	            case 2: //작성자
+                    txt_u_jakseongja_cd.value = winObj.code; 
+                    txt_jakseongja_nm.value   = winObj.name; 
+	                break;
+	            case 4: //검토자
+                    txt_u_geomtoja_cd.value = winObj.code; 
+                    txt_geomtoja_nm.value   = winObj.name; 
+	                break;
+	            case 5: //승인자
+                    txt_u_seunginja_cd.value = winObj.code; 
+                    txt_seunginja_nm.value   = winObj.name; 
+	                break;
+	            case 6: //관리항목
+					txt_u_mgt_item_cd.value = winObj.code;
+					txt_mgt_item_nm.value   = winObj.name;
+					txt_u_proj_cd.focus();
+	            	break;
+                case 7: //프로젝트
+                    txt_u_proj_cd.value = winObj.code; 
+                    txt_proj_nm.value   = winObj.name; 
+                    txt_u_sawon_buseo_cd.focus();
+                    break;  
+                case 8: //사원부서
+                    txt_u_sawon_buseo_cd.value = winObj.code; 
+                    txt_sawon_buseo_nm.value   = winObj.name; 
+                    break;  
+                case 9: //거래처
+                    DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"u_clnt_cd") = winObj.code;
+                    DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"clnt_nm")   = winObj.name;
+                    grd_detl.SetColumn("u_jeungbing_cd");
+                    break;
+				case 10: //개인내역
+                    DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"naeyeok_cd") = winObj.code;
+                    DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"u_naeyeok_cd") = winObj.uCode;
+                    DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"naeyeok")   = winObj.name;
+                    grd_detl.SetColumn("bigo");
+	                break;
+				case 11: //계산서 추가정보
+					//alert(winObj.saeopjaNo+" "+winObj.uCardCd+" "+winObj.cardNm+" "+winObj.seunginNo);
+                    DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"u_jijeom_cd") = winObj.uJijeomCd;
+                    DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"saeopja_no") = winObj.saeopjaNo;
+                    DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"u_card_cd") = winObj.uCardCd;
+                    DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"card_nm") = winObj.cardNm;
+                    DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"seungin_no") = winObj.seunginNo;
+	                break;
+	            case 12: //검토자2
+                    txt_u_geomtoja2_cd.value = winObj.code; 
+                    txt_geomtoja2_nm.value   = winObj.name; 
+	                break;
+	            case 13: //종전결의서 조회 후 상세내역 data Setting
+    				detlDsCls = "jongjeon";
+	            	setDataSetDetl(winObj);
+	                break;
+                default :
+            }//
+        }
+    }
+    
+	function calendarBaluiil(){
+		var winObj = window.showModalDialog("/js/calendar.html", window, "dialogWidth:170px; dialogHeight:193px; center=0; status:0; scroll=no; help:no;");
+		if(typeof(winObj)=="object"){
+			em_baluiil.Text = winObj.yyyymmdd;
+			makeUpmuNo();
+		}
+	}
+    
+	function calendarCheongguil(){
+		var winObj = window.showModalDialog("/js/calendar.html", window, "dialogWidth:170px; dialogHeight:193px; center=0; status:0; scroll=no; help:no;");
+		if(typeof(winObj)=="object") em_cheongguil.Text = winObj.yyyymmdd;
+	}
+    
+	/**************************************************************************
+		▶ DataSet, Transaction Object 생성
+	***************************************************************************/	
+	//유효성체크	
+    loadDataSetCreateCo('DataSetBaClntCode', 'tr_clnt_code');
+    loadDataSetCreateCo('DataSetBaMgtItemCode', 'tr_mgt_item_code');
+    loadDataSetCreateCo('DataSetBaProjCode', 'tr_proj_code');
+	loadDataSetCreateCo('DataSetBaSawonCode', 'tr_sawon_code');
+    loadDataSetCreateCo('DataSetBaBuseoCode', 'tr_buseo_code');
+    loadDataSetCreateCo('DataSetBa3Fields', 'tr_one_naeyeok');		//내역정보 가져오기
+    
+	//DataSet
+    loadDataSetCo("DataSetBaKyeoluiseo");    
+    loadDataSetCo("DataSetBaKyeoluiseoDetl");    
+    loadDataSetCo("DataSetBaJeungbing");		//증빙종류
+    loadDataSetCo("DataSetBaShortStr");    
+    loadDataSetCo("DataSetBaNum"); 				//지점 갯수
+    loadDataSetCo("DataSetBa507RU");			//결재등록정보
+
+	// input TR
+    loadInTrCo("tr_main_u","DataSetBaKyeoluiseo");
+    loadInTrCo("tr_detl_u","DataSetBaKyeoluiseoDetl");
+	
+	// output TR
+    loadOutTrCo("tr_kyeoluiseo_r","DataSetBaKyeoluiseo");	//결의서 메인 조회
+    loadOutTrCo("tr_jeungbing","DataSetBaJeungbing");
+    loadOutTrCo("tr_kyeoluiseo_no_r","DataSetBaShortStr");
+    loadOutTrCo("tr_jijeom_cnt_r", "DataSetBaNum");			//지점 갯수
+    loadOutTrCo("tr_ba507r","DataSetBa507RU");				//결재등록정보
+
+    /* input  Tr Event -- input  DataSet이 여러개인 경우 */
+    //loadInTrEventCo("tr_all_u");
+-->
+</script>
+<!-----------------------------------------------------------
+			/* DataSet */ 
+------------------------------------------------------------->
+<script language="javascript" for="DataSetBaKyeoluiseo" event=OnLoadCompleted(CountRow)>
+	if(CountRow>0) getKyeoluiseoDetl();
+</script>
+<!-----------------------------------------------------------
+			/* Transaction */ 
+------------------------------------------------------------->
+<!--결의서 상세내역 조회-->
+<comment id="__NOSCRIPT_ID__">
+<object id="tr_detl_r" classid="clsid:0A2233AD-E771-11D2-973D-00104B15E56F" >
+    <param name="KeyName"    value="toinb_dataid4">
+    <param name="KeyValue"   value="JSP(O:DataSetBaKyeoluiseoDetl=DataSetBaKyeoluiseoDetl)">
+    <param name="Action"     value="/servlet/GateServlet">
+    <param name="Protocol"   value="1">
+</object>
+</comment><script>__ShowEmbedObject(__NOSCRIPT_ID__);</script>
+<!--결의서와 결의서내역-->
+<comment id="__NOSCRIPT_ID__">
+<object id="tr_all_r" classid="clsid:0A2233AD-E771-11D2-973D-00104B15E56F" >
+    <param name="KeyName"  value="toinb_dataid4">
+    <param name="KeyValue" value="JSP(O:DataSetBaKyeoluiseo=DataSetBaKyeoluiseo, O:DataSetBaKyeoluiseoDetl=DataSetBaKyeoluiseoDetl)">
+    <param name="Action"   value="/servlet/GateServlet">
+    <param name="Protocol" value="1">
+</object>
+</comment><script>__ShowEmbedObject(__NOSCRIPT_ID__);</script>
+<comment id="__NOSCRIPT_ID__">
+<object id="tr_all_u" classid="clsid:0A2233AD-E771-11D2-973D-00104B15E56F" >
+    <param name="KeyName"  value="toinb_dataid4">
+    <param name="KeyValue" value="JSP(I:DataSetBaKyeoluiseo=DataSetBaKyeoluiseo, I:DataSetBaKyeoluiseoDetl=DataSetBaKyeoluiseoDetl)">
+    <param name="Action"   value="/servlet/GateServlet">
+    <param name="Protocol" value="1">
+</object>
+</comment><script>__ShowEmbedObject(__NOSCRIPT_ID__);</script>
+<!-----------------------------------------------------------
+                /*  File Control  */
+------------------------------------------------------------->
+<object id=file_control classid=CLSID:C722848E-C7EE-4DC6-947E-C2CD49BBA9DE>
+	<param name="FileFilterString"  value=256>
+</object>
+
+<!------------------------------------------------------------
+			/* DataSet Event */ 
+------------------------------------------------------------->
+<!-----------------------------------------------------------
+			/* Transaction Event */ 
+------------------------------------------------------------->
+<script language="javascript" for="tr_detl_r" event=OnSuccess()>
+	if((detlDsCls!="jongjeon")&&(DataSetBaKyeoluiseoDetl.CountRow>0)){
+		txt_u_mgt_item_cd.value = DataSetBaKyeoluiseoDetl.NameValue(1,"u_mgt_item_cd");
+		txt_mgt_item_nm.value = DataSetBaKyeoluiseoDetl.NameValue(1,"mgt_item_nm");
+		txt_u_proj_cd.value = DataSetBaKyeoluiseoDetl.NameValue(1,"u_proj_cd");
+		txt_proj_nm.value = DataSetBaKyeoluiseoDetl.NameValue(1,"proj_nm");
+		txt_u_sawon_buseo_cd.value = DataSetBaKyeoluiseoDetl.NameValue(1,"u_sawon_buseo_cd");
+		radio_sawon_buseo_cls.CodeValue = DataSetBaKyeoluiseoDetl.NameValue(1,"sawon_buseo_cls");
+		txt_sawon_buseo_nm.value = DataSetBaKyeoluiseoDetl.NameValue(1,"sawon_buseo_nm");
+	}	
+</script>
+<script language="javascript" for="tr_detl_r" event=OnFail()>
+	alert(this.SrvErrMsg('ServerErrMsg', 0));
+</script>
+
+<script language="javascript"  for="tr_all_u" event=OnSuccess()>
+	alert(" 성공적으로 처리되었습니다! ");
+	if(chk_yeonsok.checked) insert();
+	else search();
+</script>
+<script language="javascript"  for="tr_all_u" event=OnFail()>
+	var indx = this.SrvErrMsg('ServerErrMsg', 0).indexOf("무결성");
+	if(indx>=0){
+		alert(" 동일한 결의서번호로 이미 작성되어 있습니다!! \n\n 결의서번호 끝자리를 증가시켜 작성해보시기 바랍니다. ");
+		txt_kyeoluiseo_no.focus();
+	}else if(this.ErrorMsg.indexOf("50014")>=0){
+		alert(" 열려있는 첨부파일이 있는지 확인하시고 \n\n 열려있으면 닫은 후 저장하시기 바랍니다. ");  
+	}else alert(this.SrvErrMsg('ServerErrMsg', 0));
+</script>
+
+<!-----------------------------------------------------------
+			/* Grid Event */ 
+------------------------------------------------------------->
+<!-- 그리드 상에서 팝업 처리 -->
+<script language="javascript"  for=grd_detl event=OnPopup(Row,Colid,data)>
+	//승인구분이 미처리가 아닌 경우 수정불가
+	if(DataSetBaKyeoluiseoDetl.NameValue(Row,"seungin_cls")!="1"){
+		errorMsgToTitleBarCo("승인구분이 미결인 경우만 수정할 수 있습니다!");
+		DataSetBaKyeoluiseoDetl.Undo(DataSetBaKyeoluiseoDetl.RowPosition);
+		return;
+	}	
+    if     (Colid=="u_clnt_cd")    winPopup(9);
+    else if(Colid=="u_naeyeok_cd") winPopup(10);
+</script>
+<!--증빙종류 선택-->
+<script language="javascript" for="grd_detl" event=OnCloseUp(row,colid)>
+	//승인구분이 미처리가 아닌 경우 수정불가
+	if(DataSetBaKyeoluiseoDetl.NameValue(row,"seungin_cls")!="1"){
+		errorMsgToTitleBarCo("승인구분이 미결인 경우만 수정할 수 있습니다!");
+		DataSetBaKyeoluiseoDetl.Undo(DataSetBaKyeoluiseoDetl.RowPosition);
+		return;
+	}	
+	if(colid=="u_jeungbing_cd"){
+		var uClntCd = DataSetBaKyeoluiseoDetl.NameValue(row,"u_clnt_cd");
+		var uJbCd = DataSetBaKyeoluiseoDetl.NameValue(row,"u_jeungbing_cd");
+		var bugase = DataSetBaKyeoluiseoDetl.NameValue(row,"bugase");
+		var jijeomCnt = getJijeomCnt();
+		//증빙종류 101~105 (부가세 관련 있는 것)
+		if(uJbCd=="101"||uJbCd=="102"||uJbCd=="103"||uJbCd=="104"||uJbCd=="105"){
+			if(bugase==0) DataSetBaKyeoluiseoDetl.NameValue(row,"bugase") = jeolsaCo(DataSetBaKyeoluiseoDetl.NameValue(row,"amt")*0.1);
+				grd_detl.ColumnProp("amt","Edit")="RealNumeric";
+				grd_detl.ColumnProp("bugase","Edit")="RealNumeric";
+			
+			if(uJbCd=="101"||uJbCd=="102"){
+				if(isNullCo(uClntCd)||jijeomCnt>0) winPopup(11);
+				else removeChugaInfo();
+			}else if(uJbCd=="103"||uJbCd=="104"||uJbCd=="105") winPopup(11);
+		//수입세금계산서	
+		}else if(uJbCd=="151"){
+			DataSetBaKyeoluiseoDetl.NameValue(row,"amt") = 0;
+			grd_detl.ColumnProp("amt","Edit")="None";
+			grd_detl.ColumnProp("bugase","Edit")="RealNumeric";
+		}else{
+			DataSetBaKyeoluiseoDetl.NameValue(row,"bugase") = 0;
+			grd_detl.ColumnProp("amt","Edit")="RealNumeric";
+			grd_detl.ColumnProp("bugase","Edit")="None";
+			if(uJbCd=="201"){ //계산서
+				if(isNullCo(uClntCd)||jijeomCnt>0) winPopup(11);
+				else removeChugaInfo();
+			}else removeChugaInfo(); 
+		}
+		setSumText();
+	}
+</script>
+<!--금액,부가세-->
+<script language="javascript"  for=grd_detl event=OnExit(row,colid,olddata)>
+	//승인구분이 미처리가 아닌 경우 수정불가
+	if(DataSetBaKyeoluiseoDetl.NameValue(row,"seungin_cls")!="1"){
+		errorMsgToTitleBarCo("승인구분이 미결인 경우만 수정할 수 있습니다!");
+		DataSetBaKyeoluiseoDetl.Undo(DataSetBaKyeoluiseoDetl.RowPosition);
+		return;
+	}	
+	var bugase = DataSetBaKyeoluiseoDetl.NameValue(row,"bugase");
+	var uJbCd = DataSetBaKyeoluiseoDetl.NameValue(row,"u_jeungbing_cd");
+	if(colid=="amt"){
+         if(bugase==0){
+			 if(uJbCd=="101"||uJbCd=="102"||uJbCd=="103"||uJbCd=="104"||uJbCd=="105"){
+			 	DataSetBaKyeoluiseoDetl.NameValue(row,"bugase") = jeolsaCo(DataSetBaKyeoluiseoDetl.NameValue(row,"amt")*0.1);
+			 }	
+		}	 
+		grd_detl.SetColumn("bugase");
+	}else if(colid=="naeyeok") grd_detl.SetColumn("bigo");
+	if(colid=="amt"||colid=="bugase") setSumText();
+</script>
+<!-- 거래처 조회 -->
+<script language=javascript for=grd_detl event=CanColumnPosChange(row,colid)>
+    if(colid=="u_clnt_cd"){
+        var chkColumnValue = DataSetBaKyeoluiseoDetl.NameValue(row,"u_clnt_cd");
+        return checkDataSetGridCode(DataSetBaKyeoluiseoDetl,row,"clnt_nm","DataSetBaClntCode","u_clnt_cd","clnt_nm",chkColumnValue,"winPopup(9)","",tr_clnt_code,"b10ClntNm");
+    }else if(colid=="u_naeyeok_cd"){
+        var uSawonCd = txt_u_jakseongja_cd.value;
+        var cls = "201"; 							//결의서 구분 : 청구(일반)(201)
+        var uNaeyeokCd = DataSetBaKyeoluiseoDetl.NameValue(row,"u_naeyeok_cd");
+    	return gCheckAndGetNaeyeokCo(DataSetBaKyeoluiseoDetl,uSawonCd,cls,uNaeyeokCd,"winPopup(10)");
+    }else return true;
+</script>
+
+<!-- 그리드 마지막 Row에서 화살표 아래방향버튼 다운시 발생 -->
+<script language=JavaScript for=grd_detl event=OnLastDown()>
+    insertDetl();
+</script>
+
+<!-- 첨부파일 선택, 제거 -->
+<script language=JavaScript for=grd_detl event=OnLButtonDown(row,colid,xpos,ypos)>
+	if(colid=="url_str"){
+	    grd_detl.MenuData="파일선택^1^2^1,파일삭제^1^4^1";
+	    grd_detl.TrackPopupMenu(xpos, ypos);
+	}		
+</script>
+<script language="javascript"  for=grd_detl event=OnCommand(code,str)>
+	setFileOnDataSetCo(code,file_control,DataSetBaKyeoluiseoDetl);	//dataSet에 파일 setting(추가,변경,삭제)
+</script>
+
+<!-----------------------------------------------------------
+			/* EMEdit event */
+------------------------------------------------------------->
+<script language=JavaScript for="em_baluiil" event=onLastChar(char)>
+	makeUpmuNo();
+</script>
+<!-----------------------------------------------------------
+			/* LuxeCombo event */
+------------------------------------------------------------->
+<!-----------------------------------------------------------
+			/* Radio event */
+------------------------------------------------------------->
+<!-------------------------------------------------------------------------
+			/* Body Design */ 
+-------------------------------------------------------------------------->
+<body onload="init();" oncontextmenu="return false">
+<table width="100%" cellspacing="0" cellpadding="0" >
+	<tr> 
+		<td height="25" > 
+			<iframe width="100%" height=25 marginwidth=0 marginheight=0 hspace=0 vspace=0 frameborder=0 scrolling=no src="/js/top_button.html" name="subbutton"></iframe>
+		</td>
+	</tr>
+	<tr> 
+	    <td class="td_bg" height="25" valign="top">
+	        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+		        <tr bgcolor="#1863BD" height="2">
+		            <td colspan="5"><img src="/images/icon/title_bg.gif" width="1" height="1"></td>
+		        </tr>
+		        <tr height="24"> 
+		            <td width="20">&nbsp;</td>
+		            <td width="20"><img src="/images/icon/bu100.gif" width="11" height="11"></td>
+		            <td width="280"><span class="title">결의서등록 - 청구(일반)</span></td>
+					<td  width="300" align="left">
+			            <span class="errorStyle" id="errorMessage"></span>&nbsp;&nbsp;
+			        </td>
+		            <td align="right"><span id="common_title"></span></td>
+		        </tr>       
+	        </table>
+	    </td>
+	</tr>
+	<tr><td height="3"></td></tr>
+</table>
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+	<col width="70"><col width="150"><col width="70"><col width="155"><col width="70"><col width="190"><col width=*>
+    <tr class="title_bg">
+		<td class="sub_title"><span>발의일</span></td>
+		<td>
+			<comment id="__NOSCRIPT_ID__">
+			<object id="em_baluiil" width="90" class="object" classid="CLSID:E6876E99-7C28-43AD-9088-315DC302C05F" onblur="checkDateLength(this);" tabIndex="1">
+				<param name="Alignment"     value="1">
+				<param name="SelectAll"     value="true">
+				<param name="Format"        value="YYYY-MM-DD">
+				<param name="ClipMode"      value="true">
+		    </object>
+			</comment><script>__ShowEmbedObject(__NOSCRIPT_ID__);</script>
+            <button class="search" onclick="calendarBaluiil();">
+            	<img src='/images/btn_search.gif'>
+            </button>
+		</td>
+		<td class="sub_title"><span>청구일</span></td>
+		<td>
+			<comment id="__NOSCRIPT_ID__">
+			<object id="em_cheongguil" width="90" class="object" classid="CLSID:E6876E99-7C28-43AD-9088-315DC302C05F" onblur="checkDateLength(this);" tabIndex="2">
+				<param name="Alignment"     value="1">
+				<param name="SelectAll"     value="true">
+				<param name="Format"        value="YYYY-MM-DD">
+				<param name="ClipMode"      value="true">
+		    </object>
+			</comment><script>__ShowEmbedObject(__NOSCRIPT_ID__);</script>
+            <button class="search" onclick="calendarCheongguil();">
+            	<img src='/images/btn_search.gif'>
+            </button>
+		</td>
+		<td class="sub_title">결의서번호</td>
+		<td>
+        	<Input type="text" class="txt_sr" id="txt_kyeoluiseo_no" size=22  maxlength=30 tabIndex="3">
+            <button class="search" onclick="winPopup(1);">
+            	<img src='/images/btn_search.gif'>
+            </button>
+        </td>
+		<td>
+        	<Input type="text" class="txt_sr" id="txt_kyeoluiseo_title" size=35  maxlength=50  style="ime-mode:active" tabIndex="4">
+        </td>
+	</tr>
+	<tr><td height="2"></td></tr>
+</table>    
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+	<col width=70><col width=380><col width=*>
+    <tr class="title_bg">
+		<td class="sub_title">작성자</td>
+		<td>
+        	<Input type="text" class="txt_sr" id="txt_u_jakseongja_cd" size=12 maxlength=30  style="ime-mode:disabled" onBlur="chkPatten(this,'','lrtrim','upper','etc');userCodeCheckCo('DataSetBaKyeoluiseo','tr_clnt_code','jakseongja_nm','DataSetBaClntCode','b10ClntNm',this,'',noCode);" onKeyDown="nextFocusCo(nextFieldNm(this,2));" tabIndex="5">
+	        <button class="search" onclick="winPopup(2);">
+	        	<img src="/images/btn_search.gif" alt="검색">
+	    	</button>
+        	<Input type="text" class="txt_sr" id="txt_jakseongja_nm" size=30  maxlength=30>
+		</td>
+        <td><input id="chk_yeonsok" type="checkbox" >저장후 연속입력</td>
+    </tr>
+	<tr><td height="2"></td></tr>
+</table>
+<table width="100%" border="1" borderColor="#0000ff" cellspacing="0" cellpadding="0">
+	<tr>
+	<td align="center"><b>&nbsp;결 재&nbsp;</b></td>
+	<td align="left" valign="top">
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		    <tr class="title_bg">
+				<td class="sub_title" width=55>결재상태</td>
+				<td width=90>
+					<comment id="__NOSCRIPT_ID__">
+					<object id="luxe_kyeoljae_cls" style="width:80px;height:20" class="object" classid="clsid:60109D65-70C0-425C-B3A4-4CB001513C69" tabIndex="7">
+						<param name="CBData"	     value="0^미결재,1^검토,A^검토2,2^승인">
+						<param name="CBDataColumns"	 value="code,name">
+				        <param name="ComboStyle"     value="3">
+						<param name="Enable"         value="false">
+				        <param name="SearchColumn"   value="code">
+				        <param name="EditExprFormat" value="%;name">
+				        <param name="ListExprFormat" value="code^1^20,name^1^80">
+						<param name="ListCount"      value="25"> 
+				        <param name="BindColumn"     value="code">
+					</object>
+					</comment><script>__ShowEmbedObject(__NOSCRIPT_ID__);</script>
+		        </td>	
+		        <td class="sub_title" width=55>검토자</td>
+		        <td width=205>
+		            <input type="text" class="txt_sr" id="txt_u_geomtoja_cd" size="8" style="ime-mode:disabled" onBlur="chkPatten(this,'','lrtrim','upper','etc');userCodeCheckCo('DataSetBaKyeoluiseo','tr_clnt_code','geomtoja_nm','DataSetBaClntCode','b10ClntNm',this,'',noCode);" onKeyDown="nextFocusCo(nextFieldNm(this,2));" tabIndex="8">
+		            <button class="search" id="btn_geomtoja" onclick="winPopup(4)">
+		                <img src="/images/btn_search.gif" alt="검색">
+		            </button>   
+		            <input type="text" class="txt_sr" id="txt_geomtoja_nm" size=11 maxlength=50>
+		        </td>
+		        <td class="sub_title" id="td_geomtoja2_1" width=55><span id="span_geomtoja2">검토자2</span></td>
+		        <td id="td_geomtoja2_2" width=205>
+		            <input type="text" class="txt_sr" id="txt_u_geomtoja2_cd" size="8" style="ime-mode:disabled" onBlur="chkPatten(this,'','lrtrim','upper','etc');userCodeCheckCo('DataSetBaKyeoluiseo','tr_clnt_code','geomtoja2_nm','DataSetBaClntCode','b10ClntNm',this,'',noCode);" onKeyDown="nextFocusCo(nextFieldNm(this,2));" tabIndex="8">
+		            <button class="search" id="btn_geomtoja2" onclick="winPopup(12)">
+		                <img src="/images/btn_search.gif" alt="검색">
+		            </button>   
+		            <input type="text" class="txt_sr" id="txt_geomtoja2_nm" size=11 maxlength=50>
+		        </td>
+		        <td class="sub_title" width=55>승인자</td>
+		        <td width=*>
+		            <input type="text" class="txt_sr" id="txt_u_seunginja_cd" size="8" style="ime-mode:disabled" onBlur="chkPatten(this,'','lrtrim','upper','etc');userCodeCheckCo('DataSetBaKyeoluiseo','tr_clnt_code','seunginja_nm','DataSetBaClntCode','b10ClntNm',this,'',noCode);" onKeyDown="if(event.keyCode==13)grd_detl.focus();" tabIndex="9">
+		            <button class="search" id="btn_seunginja" onclick="winPopup(5)">
+		                <img src="/images/btn_search.gif" alt="검색">
+		            </button>   
+		            <input type="text"class="txt_sr" id="txt_seunginja_nm" size=11 maxlength=50>
+		        </td>
+			</tr>
+			<tr><td height="2"></td></tr>
+		</table>
+	</td>
+	</tr>
+</table>
+
+<fieldset style="padding-left: 5pt; font-size: 9pt; padding-bottom: 0pt; width:100%; padding-top: 0pt">
+    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+		<col width=30><col width=70><col width=670><col width=*>
+	    <tr>
+	    	<td>&nbsp;</td>
+	    	<td><button id="btn_row_insert" class="btn_dml" onClick="insertDetl();">행추가</button></td>
+	    	<td><button id="btn_row_delete" class="btn_dml" onClick="removeDetl();">행삭제</button></td>
+	    	<td><button id="btn_jongjeon_kyeol_popup" class="btn_dml" onClick="winPopup(13);">종전결의서조회</button></td>
+	    </tr>
+	</table>    
+    <table width="100%" bordercolorlight="#8F8F8F"  bordercolordark="#FFFFFF" border="1" cellpadding="0" cellspacing="0"  class="content_color" >
+    	<tr>
+    		<td>
+			    <comment id="__NOSCRIPT_ID__">
+	            <object id="grd_detl" classid="clsid:1F57AEAD-DB12-11D2-A4F9-00608CEBEE49" width="100%" height="340" tabIndex="10">
+		            <param name="DataID"        value="DataSetBaKyeoluiseoDetl">
+		            <param name="ColSizing"     value="true">
+		            <param name="IndWidth"      value="20">
+		            <param name="TitleHeight"   value="20">
+		            <param name="LineColor"     value="#B8B8B8">
+		            <param name="Editable"      value="true">
+		            <param name="ViewSummary"   value="1">
+		            <param name="Format"        value="
+						<C>Name=승인	    ID=seungin_cls		edit=none EditStyle=Combo Data='1:미결,2:보류,3:부결,4:기결' HeadBgColor=#ececff Width=50  Align=Center</C>
+						<C>Name=거래처코드	ID=u_clnt_cd		editStyle=popup HeadBgColor=#ececff Width=80  Align=left</C>
+						<C>Name=거래처명	ID=clnt_nm			HeadBgColor=#ececff Width=120  Align=left</C>
+						<C>Name=증빙종류	ID=u_jeungbing_cd	EditStyle=Lookup Data='DataSetBaJeungbing:u_jeungbing_cd:jeungbing_nm' HeadBgColor=#ececff Width=120  Align=left SumBgColor=#FFFF99 sumtext=' 합 계 '</C>
+						<C>Name=금액		ID=amt				dec=0 HeadBgColor=#ececff Width=90  Align=right SumBgColor=#FFFF99 sumtext=@sum</C>
+						<C>Name=부가세		ID=bugase			edit=none dec=0 HeadBgColor=#ececff Width=90  Align=right SumBgColor=#FFFF99 sumtext=@sum</C>
+						<C>Name=청구합계	ID=amt_sum		    edit=none dec=0 HeadBgColor=#ececff Width=90  Align=right SumBgColor=#FFFF99  sumtextalign=right sumtext=@sum</C>
+						<C>Name=코드		ID=u_naeyeok_cd		editStyle=popup HeadBgColor=#ececff Width=50  Align=Center</C>
+						<C>Name=내역		ID=naeyeok			HeadBgColor=#ececff Width=140  Align=left</C>
+						<C>Name=비고		ID=bigo				HeadBgColor=#ececff Width=110  Align=left</C>
+						<C>Name=비고2		ID=bigo2			show=false HeadBgColor=#ececff Width=110  Align=left</C>
+						<C>Name=첨부파일	ID=url_str          edit=none show=false HeadBgColor=#ececff Width=150  Align=left</C>
+		            ">
+	            </object>
+	            </comment><SCRIPT>__ShowEmbedObject(__NOSCRIPT_ID__);</SCRIPT>
+            </td>
+        </tr>
+    </table>
+</fieldset>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<col width="70"><col width="130"><col width="270"><col width="70"><col width="130"><col width=*>
+	<tr class="title_bg">
+	     <td class="sub_title">관리항목</td>
+	     <td>
+	       <input type="text" class="txt_sr" id="txt_u_mgt_item_cd" style="ime-mode:disabled" size="12" tabIndex="11">
+	        <button class="search" onclick="winPopup(6);">
+	        	<img src="/images/btn_search.gif" alt="검색">
+	        </button>
+	 	</td>
+	    <td>
+	        <input type="text" class="txt_sr" id="txt_mgt_item_nm" size="30" >
+	    </td>
+		<td class="sub_title">프로젝트</td>
+		<td>
+			<input type="text" class="txt_sr"  id="txt_u_proj_cd" style="ime-mode:disabled" size="12" tabIndex="12">
+			<button class="search" onclick="winPopup(7);">
+			<img src="/images/btn_search.gif" alt="검색">
+			</button>
+		</td>
+		<td>
+			<input type="text" class="txt_sr" id="txt_proj_nm" size="30" >
+		</td>
+	</tr>
+	<tr><td height="2"></td></tr>
+</table>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<col width="70"><col width="130"><col width="100"><col width=*>
+	<tr class="title_bg"><td class="sub_title">사원부서</td>
+		<td>
+			<input type="text" class="txt_sr" id="txt_u_sawon_buseo_cd" style="ime-mode:disabled" size="12" onFocus="setDefaultSawonOrBuseo();" tabIndex="13">
+				<button id="btn_sawon_buseo" class="search" onclick="winPopup(8);">
+			<img src="/images/btn_search.gif" alt="검색"></button>
+		</td>
+		<td>
+			<input type="text" class="txt_sr" id="txt_sawon_buseo_nm" size="30" >
+		</td>
+		<td>
+			<comment id="__NOSCRIPT_ID__">
+				<object id="radio_sawon_buseo_cls" classid="CLSID:754F3DC4-0C79-4C92-AD64-A806D8FF2AB0" style="height:24; width:120">
+					<param name=Cols    value="2">
+					<param name=Format  value="1^사원,2^부서">
+				</object>
+			</comment><SCRIPT>__ShowEmbedObject(__NOSCRIPT_ID__);</SCRIPT>
+		</td>
+	</tr>
+	<tr><td height="2"></td></tr>
+</table>
+</body>
+<!----------------------------  Bind Component ---------------------------------->
+<object classid="clsid:9C9AB433-EA85-11D2-A4F9-00608CEBEE49" id="bnd_master"> 
+    <param name="DataID"    value="DataSetBaKyeoluiseo">
+    <param name="BindInfo"  value="
+		<C>Col=baluiil			Ctrl=em_baluiil				Param=Text</C>
+		<C>Col=cheonggu_j_il	Ctrl=em_cheongguil			Param=Text</C>
+		<C>Col=kyeoluiseo_no	Ctrl=txt_kyeoluiseo_no		Param=Value</C>
+		<C>Col=kyeoluiseo_title	Ctrl=txt_kyeoluiseo_title   Param=Value</C>
+		<C>Col=u_jakseongja_cd	Ctrl=txt_u_jakseongja_cd	Param=Value</C>
+		<C>Col=jakseongja_nm	Ctrl=txt_jakseongja_nm		Param=Value</C>
+		<C>Col=kyeoljae_cls		Ctrl=luxe_kyeoljae_cls		Param=BindColVal</C>
+		<C>Col=u_geomtoja_cd	Ctrl=txt_u_geomtoja_cd		Param=Value</C>
+		<C>Col=geomtoja_nm		Ctrl=txt_geomtoja_nm		Param=Value</C>
+		<C>Col=u_geomtoja2_cd	Ctrl=txt_u_geomtoja2_cd		Param=Value</C>
+		<C>Col=geomtoja2_nm		Ctrl=txt_geomtoja2_nm		Param=Value</C>
+		<C>Col=u_seunginja_cd	Ctrl=txt_u_seunginja_cd		Param=Value</C>
+		<C>Col=seunginja_nm		Ctrl=txt_seunginja_nm		Param=Value</C>
+    ">
+</object>
+
+<!-- 결의서 리포트 -->
+<comment id="__NOSCRIPT_ID__">
+<object classid="clsid:37D13B2F-E5EB-11D2-973D-00104B15E56F" id="prnKyeoluiseo"> 
+    <param name="MasterDataID"      value="DataSetBaKyeoluiseo">
+    <param name="DetailDataID"      value="DataSetBaKyeoluiseoDetl">
+	<param name="BandColumn"        value="no">
+	<param name="LandScape"         value="false">
+	<param name="AllowBandOversize" value="true">
+	<param name="PaperSize"			value="A4">
+	<param name="PrintSetupDlgFlag"	value="true">
+	<param name="Format"		    value="">
+</object>
+</comment><SCRIPT>__ShowEmbedObject(__NOSCRIPT_ID__);</SCRIPT>
+</html>
