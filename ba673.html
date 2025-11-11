@@ -126,6 +126,7 @@
 				params = params + ",uGeomtoja2Cd="+DataSetBaKyeoluiseo.NameValue(1,"u_geomtoja2_cd").val;
 				params = params + ",uSeunginjaCd="+DataSetBaKyeoluiseo.NameValue(1,"u_seunginja_cd").val;
 				params = params + ",baluiil="+DataSetBaKyeoluiseo.NameValue(1,"baluiil").val;
+		    	params = params + ",gauceCls=gauce5";
 				//alert(params);
 	        	tr_all_u.Parameters = params;
 	        	tr_all_u.Post();
@@ -205,169 +206,8 @@
 
 	// print
 	function print(){
-		if(DataSetBaKyeoluiseo.CountRow==0) return;
-		var pyosiUse = getSettingDataCo("1","1000","KYEOL_KYEOLJAE_PYOSI_USE");
-		//var geomtoCnt = Number(getSettingDataCo("1","1000","KYEOL_GEOMTO_STEP_CNT"));
-		if(pyosiUse=="true"){
-			getKyeoljaePyosi();
-			if((geomtoCnt+2)!=DataSetBa507RU.CountRow){
-				alert(" [사업장설정]에서 설정한 결재란 갯수와  [결재란등록]에서 등록한 갯수가 틀립니다. ");
-				return;
-			}
-		}	
-		prnKyeoluiseo.Format = makeReportFormat(pyosiUse,geomtoCnt);
-		prnKyeoluiseo.Preview();
 	}
 
-	//결재 단계별명칭 가져오기
-	function getKyeoljaePyosi(){
-		tr_ba507r.Parameters = "jobId=JobBa507,uClsCd=101";
-		tr_ba507r.Post();
-	}
-
-	//리포트 포맷 만들기
-	function makeReportFormat(pyosiUse,geomtoCnt){
-		//결재 단계별명칭 정하기
-		var damdang = "담 당", geomto ="검 토", geomto2 = "검 토2", seungin = "승 인";
-		if(pyosiUse=="true"){
-			damdang = DataSetBa507RU.NameValue(1,"pyosi").val;
-			geomto =  DataSetBa507RU.NameValue(2,"pyosi").val;
-			if     (DataSetBa507RU.CountRow==3) seungin = DataSetBa507RU.NameValue(3,"pyosi").val;
-			else if(DataSetBa507RU.CountRow==4){
-				geomto2 = DataSetBa507RU.NameValue(3,"pyosi").val;
-				seungin = DataSetBa507RU.NameValue(4,"pyosi").val;
-			}	
-		}	
-
-		var rF = "";
-		var rowPos = DataSetBaKyeoluiseo.RowPosition
-		var kCls = DataSetBaKyeoluiseo.NameValue(rowPos,"kyeoluiseo_cls").val;
-		var kyeoljaeCls = DataSetBaKyeoluiseo.NameValue(rowPos,"kyeoljae_cls").val;
-		var jakseongId = DataSetBaKyeoluiseo.NameValue(rowPos,"jakseongja_id").val;
-		var geomtojaId = DataSetBaKyeoluiseo.NameValue(rowPos,"geomtoja_id").val;
-		var geomtoja2Id = DataSetBaKyeoluiseo.NameValue(rowPos,"geomtoja2_id").val;
-		var seunginjaId = DataSetBaKyeoluiseo.NameValue(rowPos,"seunginja_id").val;
-		var jakseongjaImgId = "", geomtojaImgId = "", geomtoja2ImgId = "", seunginjaImgId = "";
-
-		if(isNotNullCo(jakseongId)) jakseongjaImgId = commonWpId+"_"+jakseongId+"_"+"kyeoljae";
-		if(isNotNullCo(geomtojaId)) geomtojaImgId = commonWpId+"_"+geomtojaId+"_"+"kyeoljae";
-		if(isNotNullCo(geomtoja2Id)) geomtoja2ImgId = commonWpId+"_"+geomtoja2Id+"_"+"kyeoljae";
-		if(isNotNullCo(seunginjaId)) seunginjaImgId = commonWpId+"_"+seunginjaId+"_"+"kyeoljae";
- 		//alert(geomtojaImgId+"...."+geomtoja2ImgId);
-
-		// 결재상태 - 미결재
-		if(kyeoljaeCls=="0"){
-			geomtojaImgId = "";
-			geomtoja2ImgId = "";
-			seunginjaImgId = "";
-		//결제상태 - 검토
-		}else if(kyeoljaeCls=="1"){
-			geomtoja2ImgId = "";
-			seunginjaImgId = "";
-		//결제상태 - 검토2
-		}else if(kyeoljaeCls=="A"){
-			seunginjaImgId = "";
-		}
-		//alert(kyeoljaeCls+"  "+jakseongjaImgId+"  "+geomtojaImgId+"  "+seunginjaImgId);
-
-		rF=rF+"<B>id=DHeader ,left=0,top=0 ,right=2000 ,bottom=952 ,face='굴림' ,size=10 ,penwidth=1px";
-		rF=rF+"<T>id='청구일 :' ,left=26 ,top=651 ,right=251 ,bottom=712 ,align='left'</T>";
-		rF=rF+"<C>id='cheonggu_j_il', left=249, top=651, right=487, bottom=712, align='left' ,mask='XXXX-XX-XX'</C>";
-		rF=rF+"<C>id='baluiil', left=249, top=593, right=487, bottom=654, align='left' ,mask='XXXX-XX-XX'</C>";
-		rF=rF+"<T>id='작성(신청)자 :' ,left=714 ,top=593 ,right=945 ,bottom=654 ,align='left'</T>";
-		rF=rF+"<C>id='jakseongja_nm', left=945, top=593, right=1270, bottom=654, align='left'</C>";
-		rF=rF+"<T>id='소속부서 :' ,left=1302 ,top=593 ,right=1471 ,bottom=654 ,align='left'</T>";
-		rF=rF+"<C>id='buseo_nm', left=1471, top=593, right=1884, bottom=654, align='left'</C>";
-		rF=rF+"<T>id='결의서 제목 :' ,left=714 ,top=532 ,right=939 ,bottom=593 ,align='left'</T>";
-		rF=rF+"<C>id='kyeoluiseo_no', left=249, top=532, right=659, bottom=593, align='left'</C>";
-		rF=rF+"<C>id='kyeoluiseo_title', left=945, top=532, right=1632, bottom=593, align='left'</C>";
-		rF=rF+"<L> left=26 ,top=191 ,right=1905 ,bottom=191 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-		rF=rF+"<L> left=26 ,top=516 ,right=1905 ,bottom=516 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-		rF=rF+"<L> left=1640 ,top=191 ,right=1640 ,bottom=516 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-		rF=rF+"<L> left=1111 ,top=191 ,right=1111 ,bottom=516 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-		rF=rF+"<L> left=1905 ,top=191 ,right=1905 ,bottom=516 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-		rF=rF+"<L> left=1376 ,top=191 ,right=1376 ,bottom=516 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-
-		if(geomtoCnt>1){
-			//추가
-			rF=rF+"<L> left=847,top=191 ,right=847,bottom=516 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-			rF=rF+"<T>id='"+damdang+"' ,left=870 ,top=201 ,right=1074 ,bottom=267 ,face='굴림' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
-			//수정
-			rF=rF+"<L> left=847 ,top=273 ,right=1905 ,bottom=273 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-			rF=rF+"<T>id='"+geomto+"' ,left=1143 ,top=198 ,right=1347 ,bottom=265 ,face='굴림' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
-			rF=rF+"<T>id='"+geomto2+"' ,left=1410 ,top=198 ,right=1614 ,bottom=265 ,face='굴림' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
-			rF=rF+"<T>id=' 지  출  결  의  서 ' ,left=169 ,top=233 ,right=643 ,bottom=304 ,face='굴림' ,size=14 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
-			rF=rF+"<C>id={'('&decode(kyeoluiseo_cls,'101','일반지출','102','결제지출','103','직불카드','201','일반청구','202','법인신용카드','203','임직원지출','301','선급정산','302','가지급정산')&')'}, left=164, top=325, right=640, bottom=392, face='굴림', size=11, bold=false, underline=false, italic=false, forecolor=#000000, backcolor=#FFFFFF</C>";
-			rF=rF+"<I>id='http://www.goodmansoft.net/images/sign/"+jakseongjaImgId+"',left=876 ,top=291 ,right=1090 ,bottom=464</I>";
-														rF=rF+"<C>id='jakseongja_nm', left=876, top=465, right=1090, bottom=505</C>";
-			rF=rF+"<I>id='http://www.goodmansoft.net/images/sign/"+geomtojaImgId+"',left=1140 ,top=291 ,right=1355 ,bottom=464</I>";
-			if((kyeoljaeCls=="1")||(kyeoljaeCls=="A")||(kyeoljaeCls=="2")) rF=rF+"<C>id='geomtoja_nm'  ,left=1140, top=465, right=1355, bottom=505</C>";
-			rF=rF+"<I>id='http://www.goodmansoft.net/images/sign/"+geomtoja2ImgId+"' ,left=1405 ,top=291 ,right=1619 ,bottom=464</I>";
-			if((kyeoljaeCls=="A")||(kyeoljaeCls=="2")) rF=rF+"<C>id='geomtoja2_nm'   ,left=1405, top=465, right=1619, bottom=505</C>";
-		}else{
-			rF=rF+"<L> left=1111 ,top=273 ,right=1905 ,bottom=273 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-			rF=rF+"<T>id='"+damdang+"' ,left=1143 ,top=198 ,right=1347 ,bottom=265 ,face='굴림' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
-			rF=rF+"<T>id='"+geomto+"' ,left=1410 ,top=198 ,right=1614 ,bottom=265 ,face='굴림' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
-			rF=rF+"<T>id=' 지  출  결  의  서 ' , left=328 ,top=233 ,right=802 ,bottom=304, face='굴림' ,size=14 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
-			rF=rF+"<C>id={'('&decode(kyeoluiseo_cls,'101','일반지출','102','결제지출','103','직불카드','201','일반청구','202','법인신용카드','203','임직원지출','301','선급정산','302','가지급정산')&')'}, left=323, top=325, right=799, bottom=392, face='굴림', size=11, bold=false, underline=false, italic=false, forecolor=#000000, backcolor=#FFFFFF</C>";
-			rF=rF+"<I>id='http://www.goodmansoft.net/images/sign/"+jakseongjaImgId+"',left=1140 ,top=291 ,right=1355 ,bottom=464</I>";
-														rF=rF+"<C>id='jakseongja_nm', left=1140, top=465, right=1355, bottom=505</C>";
-			rF=rF+"<I>id='http://www.goodmansoft.net/images/sign/"+geomtojaImgId+"' ,left=1405 ,top=291 ,right=1619 ,bottom=464</I>";
-			if((kyeoljaeCls=="1")||(kyeoljaeCls=="A")||(kyeoljaeCls=="2"))	rF=rF+"<C>id='geomtoja_nm'  ,left=1405, top=465, right=1619, bottom=505</C>";
-		}
-
-		rF=rF+"<T>id='"+seungin+"' ,left=1672 ,top=198 ,right=1876 ,bottom=265 ,face='굴림' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
-		rF=rF+"<L> left=26 ,top=191 ,right=26 ,bottom=516 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-		rF=rF+"<T>id='비  고' ,left=1619 ,top=881 ,right=1905 ,bottom=947</T>";
-		rF=rF+"<T>id='합    계' ,left=1402 ,top=881 ,right=1614 ,bottom=947</T>";
-		rF=rF+"<T>id='부가세' ,left=1183 ,top=881 ,right=1394 ,bottom=947</T>";
-		rF=rF+"<T>id='금  액' ,left=960 ,top=881 ,right=1172 ,bottom=947</T>";
-		rF=rF+"<T>id='내  역' ,left=609 ,top=881 ,right=953 ,bottom=947</T>";
-		rF=rF+"<T>id='증빙종류' ,left=331 ,top=881 ,right=601 ,bottom=947</T>";
-		rF=rF+"<L> left=29 ,top=953 ,right=1908 ,bottom=953 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-		rF=rF+"<T>id='거래처' ,left=29 ,top=881 ,right=323 ,bottom=947</T>";
-		rF=rF+"<L> left=29 ,top=873 ,right=1908 ,bottom=873 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-		rF=rF+"<T>id='발의일 :' ,left=26 ,top=593 ,right=225 ,bottom=654 ,align='left'</T>";
-		rF=rF+"<T>id='결의서 번호 :' ,left=26 ,top=532 ,right=251 ,bottom=593 ,align='left'</T>";
-		rF=rF+"<I>id='http://www.goodmansoft.net/images/sign/"+seunginjaImgId+"' ,left=1672 ,top=291 ,right=1886 ,bottom=464</I>";
-		if((kyeoljaeCls=="2"))	rF=rF+"<C>id='seunginja_nm' 					 ,left=1672, top=465, right=1886, bottom=505</C>";
-		rF=rF+"</B>";
-		rF=rF+"<B>id=default ,left=0,top=0 ,right=2000 ,bottom=87 ,face='Arial' ,size=10 ,penwidth=1px";
-		rF=rF+"<L> left=29 ,top=82 ,right=1908 ,bottom=82 ,penstyle=dot ,penwidth=1px ,pencolor=#C0C0C0 </L>";
-		rF=rF+"<C>id='bigo', left=1619, top=5, right=1905, bottom=77, align='left', Multiline=true</C>";
-		rF=rF+"<C>id='amt_sum', left=1400, top=5, right=1611, bottom=77, align='right', Decao=0</C>";
-		rF=rF+"<C>id='bugase', left=1180, top=5, right=1392, bottom=77, align='right', Decao=0</C>";
-		rF=rF+"<C>id='amt', left=958, top=5, right=1169, bottom=77, align='right', Decao=0</C>";
-		rF=rF+"<C>id='naeyeok', left=606, top=5, right=950, bottom=77, align='left', Multiline=true</C>";
-		rF=rF+"<C>id='jeungbing_nm', left=328, top=5, right=598, bottom=77, align='left'</C>";
-		rF=rF+"<C>id='clnt_nm', left=26, top=5, right=320, bottom=77, align='left', Multiline=true</C>";
-		rF=rF+"</B>";
-		rF=rF+"<B>id=LDFooter ,left=0,top=0 ,right=2000 ,bottom=259 ,face='Arial' ,size=10 ,penwidth=1px";
-		rF=rF+"<L> left=29 ,top=177 ,right=1908 ,bottom=177 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-		rF=rF+"<L> left=29 ,top=3 ,right=1908 ,bottom=3 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-		rF=rF+"<C>id='wp_nm', left=26, top=180, right=725, bottom=246, align='left'</C>";
-		rF=rF+"<L> left=29 ,top=79 ,right=1908 ,bottom=79 ,penstyle=solid ,penwidth=3px ,pencolor=#000000 </L>";
-		rF=rF+"<T>id='프로젝트 :' ,left=1230 ,top=95 ,right=1389 ,bottom=161 ,align='left'</T>";
-		rF=rF+"<T>id='사원부서 :' ,left=619 ,top=95 ,right=778 ,bottom=161 ,align='left'</T>";
-		rF=rF+"<C>id='sawon_buseo_nm', left=781, top=95, right=1172, bottom=161, align='left'</C>";
-		rF=rF+"<C>id='mgt_item_nm', left=191, top=95, right=561, bottom=161, align='left'</C>";
-		rF=rF+"<T>id='관리항목 :' ,left=26 ,top=95 ,right=185 ,bottom=161 ,align='left'</T>";
-		rF=rF+"<C>id='proj_nm', left=1394, top=95, right=1873, bottom=161, align='left'</C>";
-		rF=rF+"<S>id='{sum(amt_sum)}' ,left=1400 ,top=11 ,right=1611 ,bottom=77 ,align='right', Decao=0</S>";
-		rF=rF+"<S>id='{Sum(bugase)}' ,left=1180 ,top=11 ,right=1392 ,bottom=77 ,align='right', Decao=0</S>";
-		rF=rF+"<S>id='{Sum(amt)}' ,left=958 ,top=11 ,right=1169 ,bottom=77 ,align='right', Decao=0</S>";
-		rF=rF+"<T>id='합    계' ,left=333 ,top=11 ,right=545 ,bottom=77 ,face='Arial' ,size=11 ,bold=true ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
-		rF=rF+"</B>";
-
-		//공통포맷
-		rF=rF+"<B>id=Footer ,left=0 ,top=2722 ,right=2000 ,bottom=2870 ,face='Arial' ,size=10 ,penwidth=1px";
-		rF=rF+"<T>id='#t' ,left=1775 ,top=95 ,right=1849 ,bottom=148 ,face='굴림' ,size=10 ,bold=false ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
-		rF=rF+"<T>id='/' ,left=1746 ,top=95 ,right=1775 ,bottom=148 ,face='굴림' ,size=10 ,bold=false ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
-		rF=rF+"<T>id='#p' ,left=1672 ,top=95 ,right=1746 ,bottom=148 ,face='굴림' ,size=10 ,bold=false ,underline=false ,italic=false ,forecolor=#000000 ,backcolor=#FFFFFF</T>";
-		rF=rF+"</B>";
-
-		return rF;
-	}
 
 	/***************************************************************************
 		▶ 조회
@@ -722,7 +562,6 @@
 <g5-dataset id=DataSetBaJeungbing></g5-dataset>
 <g5-dataset id=DataSetBaShortStr></g5-dataset>
 <g5-dataset id=DataSetBaNum></g5-dataset>
-<g5-dataset id=DataSetBa507RU></g5-dataset>
 
 <script>
 /*************** 가우스 이벤트 처리 ***************/
@@ -742,7 +581,6 @@ g5Ready(function(){
     loadOutTrCo("tr_jeungbing","DataSetBaJeungbing");
     loadOutTrCo("tr_kyeoluiseo_no_r","DataSetBaShortStr");
     loadOutTrCo("tr_jijeom_cnt_r", "DataSetBaNum");			//지점 갯수
-    loadOutTrCo("tr_ba507r","DataSetBa507RU");				//결재등록정보
 
 DataSetBaKyeoluiseo.OnLoadCompleted = function(CountRow){
 	if(CountRow>0) getKyeoluiseoDetl();
@@ -864,10 +702,32 @@ grd_detl.OnLButtonDown = function(row,colid,xpos,ypos){
 	}		
 }
 grd_detl.OnCommand = function(code,str){
-	setFileOnDataSetCo(code,file_control,DataSetBaKyeoluiseoDetl);	//dataSet에 파일 setting(추가,변경,삭제)
+	var fileControl = document.getElementById('file_control');
+	//파일선택(추가,변경)
+    if(code==2){
+		fileControl.value = '';
+		fileControl.Open();
+	//삭제
+    }else if(code==4){
+		DataSetBaKyeoluiseoDetl.NameValue(DataSetBaKyeoluiseoDetl.RowPosition,"url_str").val = '';
+		fileControl.value = '';
+	}
 }
 em_baluiil.OnLastChar = function(char){
 	makeUpmuNo();
+}
+file_control.OnChange = function (fileName, file) {
+	var nPos = DataSetBaKyeoluiseoDetl.RowPosition;
+	DataSetBaKyeoluiseoDetl.NameValue(nPos,"url_str").val = document.getElementById('file_control').value;
+
+	const fReader = new FileReader();
+	fReader.readAsDataURL(file);
+
+	fReader.onloadend = function(event){
+		var sFile = event.target.result;
+		DataSetBaKyeoluiseoDetl.NameValue(nPos,"file_value").val = sFile.substring(sFile.indexOf(",")+1,sFile.length);
+	}
+	document.getElementById('file_control').value = '';
 }
 
 init();
@@ -1112,18 +972,5 @@ init();
 		<C>Col=seunginja_nm		Ctrl=txt_seunginja_nm		Param=Value</C>
     ">
 </g5-bind>
-
-<!-- 결의서 리포트 -->
-
-<object classid="clsid:37D13B2F-E5EB-11D2-973D-00104B15E56F" id="prnKyeoluiseo"> 
-    <param name="MasterDataID"      value="DataSetBaKyeoluiseo">
-    <param name="DetailDataID"      value="DataSetBaKyeoluiseoDetl">
-	<param name="BandColumn"        value="no">
-	<param name="LandScape"         value="false">
-	<param name="AllowBandOversize" value="true">
-	<param name="PaperSize"			value="A4">
-	<param name="PrintSetupDlgFlag"	value="true">
-	<param name="Format"		    value="">
-</object>
 
 </html>
