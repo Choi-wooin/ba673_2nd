@@ -25,7 +25,7 @@
 		insert();
  		setSetting();
  		if(commonWpId==1065) grd_detl.ColumnProp("bigo2", "Show").val = "true";
- 		if(commonWpId==113||commonWpId==1075||commonWpId==1065) file_control.FileFilterString = "1";
+ 		//if(commonWpId==113||commonWpId==1075||commonWpId==1065) file_control.FileFilterString = "1";
 	}
 
 	// 취소
@@ -82,7 +82,7 @@
 			return;
 		}
 		var kCls = DataSetBaKyeoluiseo.OrgNameValue(1,"kyeoljae_cls");
-		if(kCls!="0"){
+		if(isNotNullCo(kCls)&&(kCls!="0")){
 			alert(" 결재된 결의서는 수정할 수 없습니다. \n\n 확인하시기 바랍니다. ");
 			return;
 		}
@@ -143,7 +143,7 @@
     function remove() {
         if (DataSetBaKyeoluiseo.CountRow==0) return;
 		var kCls = DataSetBaKyeoluiseo.OrgNameValue(1,"kyeoljae_cls");
-		if(kCls!="0"){
+		if(isNotNullCo(kCls)&&(kCls!="0")){
 			alert(" 결재된 결의서는 삭제할 수 없습니다. \n\n 확인하시기 바랍니다. ");
 			return;
 		}
@@ -173,7 +173,7 @@
     function removeDetl(){
         if (DataSetBaKyeoluiseoDetl.CountRow==0) return;
 		var kCls = DataSetBaKyeoluiseo.OrgNameValue(1,"kyeoljae_cls");
-		if(kCls!="0"){
+		if(isNotNullCo(kCls)&&(kCls!="0")){
 			alert(" 결재된 결의서는 삭제할 수 없습니다. \n\n 확인하시기 바랍니다. ");
 			return;
 		}
@@ -207,7 +207,6 @@
 	// print
 	function print(){
 	}
-
 
 	/***************************************************************************
 		▶ 조회
@@ -497,22 +496,26 @@
     				detlDsCls = "jongjeon";
 	            	setDataSetDetl(winObj);
 	                break;
+                case 101: //
+					em_baluiil.Text = winObj.yyyymmdd;
+					makeUpmuNo();
+	                break;
+                case 102: //
+                	em_cheongguil.Text = winObj.yyyymmdd;
+	                break;
                 default :
             }//
         }
 	}
 
 	function calendarBaluiil(){
-		var winObj = window.showModalDialog("/js/calendar.html", window, "dialogwidth:170px;dialogheight:193px;center:0;status:0;scroll:no;help:no;");
-		if(typeof(winObj)=="object"){
-			em_baluiil.Text = winObj.yyyymmdd;
-			makeUpmuNo();
-		}
+		gGubun = 101;
+		window.showModalDialog("/js/calendar_5.html", window, "dialogwidth:220px;dialogheight:250px;center:0;status:0;scroll:no;help:no;");
 	}
 
 	function calendarCheongguil(){
-		var winObj = window.showModalDialog("/js/calendar.html", window, "dialogwidth:170px;dialogheight:193px;center:0;status:0;scroll:no;help:no;");
-		if(typeof(winObj)=="object") em_cheongguil.Text = winObj.yyyymmdd;
+		gGubun = 102;
+		window.showModalDialog("/js/calendar_5.html", window, "dialogwidth:220px;dialogheight:250px;center:0;status:0;scroll:no;help:no;");
 	}
 
 	/**************************************************************************
@@ -522,7 +525,6 @@
 </script>
 
 <!--결의서 상세내역 조회-->
-
 <g5-tr id="tr_detl_r" >
     <param name="KeyName"    value="toinb_dataid4">
     <param name="KeyValue"   value="JSP(O:DataSetBaKyeoluiseoDetl=DataSetBaKyeoluiseoDetl)">
@@ -530,7 +532,6 @@
 </g5-tr>
 
 <!--결의서와 결의서내역-->
-
 <g5-tr id="tr_all_r" >
     <param name="KeyName"  value="toinb_dataid4">
     <param name="KeyValue" value="JSP(O:DataSetBaKyeoluiseo=DataSetBaKyeoluiseo, O:DataSetBaKyeoluiseoDetl=DataSetBaKyeoluiseoDetl)">
@@ -544,18 +545,6 @@
 </g5-tr>
 
 <g5-inputfile id=file_control style="display:none;"></g5-inputfile>
-
-<!-- 그리드 상에서 팝업 처리 -->
-
-<!--증빙종류 선택-->
-
-<!--금액,부가세-->
-
-<!-- 거래처 조회 -->
-
-<!-- 그리드 마지막 Row에서 화살표 아래방향버튼 다운시 발생 -->
-
-<!-- 첨부파일 선택, 제거 -->
 
 <g5-dataset id=DataSetBaKyeoluiseo></g5-dataset>
 <g5-dataset id=DataSetBaKyeoluiseoDetl></g5-dataset>
@@ -770,7 +759,7 @@ init();
 	<tr><td height="3px"></td></tr>
 </table>
 <table width="100%" border="0" cellpadding="0" cellspacing="0">
-	<col width="70px"><col width="150px"><col width="70px"><col width="155px"><col width="70px"><col width="190px"><col width=*>
+	<col width="70px"><col width="94px"><col width="90px"><col width="70px"><col width="95px"><col width="65px"><col width="80px"><col width="210px"><col width=*>
     <tr class="title_bg">
 		<td class="sub_title"><span>발의일</span></td>
 		<td>
@@ -781,7 +770,8 @@ init();
 				<param name="Format"        value="YYYY-MM-DD">
 				<param name="ClipMode"      value="true">
 		    </g5-emedit>
-
+		</td>
+		<td>
             <div class="div_button" onclick="calendarBaluiil();">조회</div>
 		</td>
 		<td class="sub_title"><span>청구일</span></td>
@@ -793,7 +783,8 @@ init();
 				<param name="Format"        value="YYYY-MM-DD">
 				<param name="ClipMode"      value="true">
 		    </g5-emedit>
-
+		</td>
+		<td>
             <div class="div_button" onclick="calendarCheongguil();">조회</div>
 		</td>
 		<td class="sub_title">결의서번호</td>
@@ -820,51 +811,42 @@ init();
     </tr>
 	<tr><td height="2px"></td></tr>
 </table>
-<table width="100%" border="1" borderColor="#0000ff" cellspacing="0" cellpadding="0">
-	<tr>
-	<td align="center"><b>&nbsp;결 재&nbsp;</b></td>
-	<td align="left" valign="top">
-		<table width="100%" border="0" cellspacing="0" cellpadding="0">
-		    <tr class="title_bg">
-				<td class="sub_title" width=55px>결재상태</td>
-				<td width=90px>
-
-					<g5-luxecombo id="luxe_kyeoljae_cls" style="width:80px;height:20px" class="object" tabIndex="7">
-						<param name="CBData"	     value="0^미결재,1^검토,A^검토2,2^승인">
-						<param name="CBDataColumns"	 value="code,name">
-				        <param name="ComboStyle"     value="3">
-						<param name="Enable"         value="false">
-				        <param name="SearchColumn"   value="code">
-				        <param name="EditExprFormat" value="%;name">
-				        <param name="ListExprFormat" value="code^1^20,name^1^80">
-						<param name="ListCount"      value="25"> 
-				        <param name="BindColumn"     value="code">
-					</g5-luxecombo>
-
-		        </td>	
-		        <td class="sub_title" width=55px>검토자</td>
-		        <td width=205px>
-		            <input type="text" class="txt_sr" id="txt_u_geomtoja_cd" size="8" style="ime-mode:disabled" onBlur="chkPatten(this,'','lrtrim','upper','etc');userCodeCheckCo('DataSetBaKyeoluiseo','tr_clnt_code','geomtoja_nm','DataSetBaClntCode','b10ClntNm',this,'',noCode);" onKeyDown="nextFocusCo(nextFieldNm(this,2));" tabIndex="8">
-		            <div class="div_button" id="btn_geomtoja" onclick="winPopup(4)">조회</div>   
-		            <input type="text" class="txt_sr" id="txt_geomtoja_nm" size=11 maxlength=50>
-		        </td>
-		        <td class="sub_title" id="td_geomtoja2_1" width=55px><span id="span_geomtoja2">검토자2</span></td>
-		        <td id="td_geomtoja2_2" width=205px>
-		            <input type="text" class="txt_sr" id="txt_u_geomtoja2_cd" size="8" style="ime-mode:disabled" onBlur="chkPatten(this,'','lrtrim','upper','etc');userCodeCheckCo('DataSetBaKyeoluiseo','tr_clnt_code','geomtoja2_nm','DataSetBaClntCode','b10ClntNm',this,'',noCode);" onKeyDown="nextFocusCo(nextFieldNm(this,2));" tabIndex="8">
-		            <div class="div_button" id="btn_geomtoja2" onclick="winPopup(12)">조회</div>   
-		            <input type="text" class="txt_sr" id="txt_geomtoja2_nm" size=11 maxlength=50>
-		        </td>
-		        <td class="sub_title" width=55px>승인자</td>
-		        <td width=*>
-		            <input type="text" class="txt_sr" id="txt_u_seunginja_cd" size="8" style="ime-mode:disabled" onBlur="chkPatten(this,'','lrtrim','upper','etc');userCodeCheckCo('DataSetBaKyeoluiseo','tr_clnt_code','seunginja_nm','DataSetBaClntCode','b10ClntNm',this,'',noCode);" onKeyDown="if(event.keyCode==13)grd_detl.Focus();" tabIndex="9">
-		            <div class="div_button" id="btn_seunginja" onclick="winPopup(5)">조회</div>   
-		            <input type="text"class="txt_sr" id="txt_seunginja_nm" size=11 maxlength=50>
-		        </td>
-			</tr>
-			<tr><td height="2px"></td></tr>
-		</table>
-	</td>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr class="title_bg">
+		<td class="sub_title" width=70px>결재상태</td>
+		<td width=185px>
+			<g5-luxecombo id="luxe_kyeoljae_cls" style="width:80px;height:20px" class="object" tabIndex="7">
+				<param name="CBData"	     value="0^미결재,1^검토,A^검토2,2^승인">
+				<param name="CBDataColumns"	 value="code,name">
+		        <param name="ComboStyle"     value="3">
+				<param name="Enable"         value="false">
+		        <param name="SearchColumn"   value="code">
+		        <param name="EditExprFormat" value="%;name">
+		        <param name="ListExprFormat" value="code^1^20,name^1^80">
+				<param name="ListCount"      value="25"> 
+		        <param name="BindColumn"     value="code">
+			</g5-luxecombo>
+        </td>	
+        <td class="sub_title" width=70px>검토자</td>
+        <td width=270px>
+            <input type="text" class="txt_sr" id="txt_u_geomtoja_cd" size="8" style="ime-mode:disabled" onBlur="chkPatten(this,'','lrtrim','upper','etc');userCodeCheckCo('DataSetBaKyeoluiseo','tr_clnt_code','geomtoja_nm','DataSetBaClntCode','b10ClntNm',this,'',noCode);" onKeyDown="nextFocusCo(nextFieldNm(this,2));" tabIndex="8">
+            <div class="div_button" id="btn_geomtoja" onclick="winPopup(4)">조회</div>   
+            <input type="text" class="txt_sr" id="txt_geomtoja_nm" size=11 maxlength=50>
+        </td>
+        <td class="sub_title" id="td_geomtoja2_1" width=70px><span id="span_geomtoja2">검토자2</span></td>
+        <td id="td_geomtoja2_2" width=270px>
+            <input type="text" class="txt_sr" id="txt_u_geomtoja2_cd" size="8" style="ime-mode:disabled" onBlur="chkPatten(this,'','lrtrim','upper','etc');userCodeCheckCo('DataSetBaKyeoluiseo','tr_clnt_code','geomtoja2_nm','DataSetBaClntCode','b10ClntNm',this,'',noCode);" onKeyDown="nextFocusCo(nextFieldNm(this,2));" tabIndex="8">
+            <div class="div_button" id="btn_geomtoja2" onclick="winPopup(12)">조회</div>   
+            <input type="text" class="txt_sr" id="txt_geomtoja2_nm" size=11 maxlength=50>
+        </td>
+        <td class="sub_title" width=70px>승인자</td>
+        <td width=*>
+            <input type="text" class="txt_sr" id="txt_u_seunginja_cd" size="8" style="ime-mode:disabled" onBlur="chkPatten(this,'','lrtrim','upper','etc');userCodeCheckCo('DataSetBaKyeoluiseo','tr_clnt_code','seunginja_nm','DataSetBaClntCode','b10ClntNm',this,'',noCode);" onKeyDown="if(event.keyCode==13)grd_detl.Focus();" tabIndex="9">
+            <div class="div_button" id="btn_seunginja" onclick="winPopup(5)">조회</div>   
+            <input type="text"class="txt_sr" id="txt_seunginja_nm" size=11 maxlength=50>
+        </td>
 	</tr>
+	<tr><td height="2px"></td></tr>
 </table>
 
 <fieldset style="padding-left: 5pt; font-size: 9pt; padding-bottom: 0pt; width:100%; padding-top: 0pt">
@@ -872,15 +854,14 @@ init();
 		<col width=30px><col width=70px><col width=670px><col width=*>
 	    <tr>
 	    	<td>&nbsp;</td>
-	    	<td><button id="btn_row_insert" class="btn_dml" onClick="insertDetl();">행추가</button></td>
-	    	<td><button id="btn_row_delete" class="btn_dml" onClick="removeDetl();">행삭제</button></td>
-	    	<td><button id="btn_jongjeon_kyeol_popup" class="btn_dml" onClick="winPopup(13);">종전결의서조회</button></td>
+	    	<td><button id="btn_row_insert" style="height:22px;" class="btn_dml" onClick="insertDetl();">행추가</button></td>
+	    	<td><button id="btn_row_delete" style="height:22px;" class="btn_dml" onClick="removeDetl();">행삭제</button></td>
+	    	<td><button id="btn_jongjeon_kyeol_popup" style="height:22px;" class="btn_dml" onClick="winPopup(13);">종전결의서조회</button></td>
 	    </tr>
 	</table>    
     <table width="100%" bordercolorlight="#8F8F8F"  bordercolordark="#FFFFFF" border="1" cellpadding="0" cellspacing="0"  class="content_color" >
     	<tr>
     		<td>
-
 	            <g5-grid id="grd_detl" width="100%" height="340px" tabIndex="10">
 		            <param name="DataID"        value="DataSetBaKyeoluiseoDetl">
 		            <param name="ColSizing"     value="true">
@@ -903,13 +884,12 @@ init();
 						<C>Name=첨부파일	ID=url_str          edit=none show=false HeadBgColor=#ececff Width=150  Align=left</C>
 		            ">
 	            </g5-grid>
-
             </td>
         </tr>
     </table>
 </fieldset>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
-<col width="70px"><col width="130px"><col width="270px"><col width="70px"><col width="130px"><col width=*>
+<col width="70px"><col width="150px"><col width="350px"><col width="70px"><col width="150px"><col width=*>
 	<tr class="title_bg">
 	     <td class="sub_title">관리항목</td>
 	     <td>
@@ -931,23 +911,21 @@ init();
 	<tr><td height="2px"></td></tr>
 </table>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
-<col width="70px"><col width="130px"><col width="100px"><col width=*>
-	<tr class="title_bg"><td class="sub_title">사원부서</td>
+<col width="70px"><col width="150px"><col width="100px"><col width=*>
+	<tr class="title_bg">
+		<td class="sub_title">사원부서</td>
 		<td>
 			<input type="text" class="txt_sr" id="txt_u_sawon_buseo_cd" style="ime-mode:disabled" size="12" onFocus="setDefaultSawonOrBuseo();" tabIndex="13">
-				<button id="btn_sawon_buseo" class="search" onclick="winPopup(8);">
-			<img src="/images/btn_search.gif" alt="검색"></button>
+	        <div class="div_button" onclick="winPopup(8);">조회</div>
 		</td>
 		<td>
 			<input type="text" class="txt_sr" id="txt_sawon_buseo_nm" size="30" >
 		</td>
 		<td>
-
-				<g5-radio id="radio_sawon_buseo_cls" style="height:24px; width:120px">
-					<param name=Cols    value="2">
-					<param name=Format  value="1^사원,2^부서">
-				</g5-radio>
-
+			<g5-radio id="radio_sawon_buseo_cls" style="height:24px; width:120px">
+				<param name=Cols    value="2">
+				<param name=Format  value="1^사원,2^부서">
+			</g5-radio>
 		</td>
 	</tr>
 	<tr><td height="2px"></td></tr>
@@ -972,5 +950,4 @@ init();
 		<C>Col=seunginja_nm		Ctrl=txt_seunginja_nm		Param=Value</C>
     ">
 </g5-bind>
-
 </html>
