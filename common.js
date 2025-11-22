@@ -8,100 +8,112 @@ var searchOff=0, cancelOff=0, saveOff=0, insertOff=0, deleteOff=0, excelOff=0, p
 var searchOn =1, cancelOn =1, saveOn =1, insertOn =1, deleteOn =1, excelOn =1, printOn =1, titleOn=1,  logoutOn=1,  mymenuOn=1,  hoegyekiOn=1; 
 var searchNo=-1, cancelNo=-1, saveNo=-1, insertNo=-1, deleteNo=-1, excelNo=-1, printNo=-1, titleNo=-1, logoutNo=-1, mymenuNo=-1, hoegyekiNo=-1;
 
-loadDataSetBaCommon();
-setDefaultDataCo();
-locationLoginYnCheck(); /*데이터셋에 값을 넣기 전에 실행될수 있으므로 호출하는 위치를 떨어뜨림*/
-loadSettingDsAndTrCo(); //설정 DataSet과 TR 만들기
-
-var commonWpId		=	DataSetBaCommon.NameValue(1,"wp_id");		//사업장아이디  
-var commonWpNm		=	DataSetBaCommon.NameValue(1,"wp_nm");		//사업장명      
-var commonHoegyeKi	=	DataSetBaCommon.NameValue(1,"hoegye_ki");	//회계기        
-var commonSdd		=	DataSetBaCommon.NameValue(1,"sdd");			//시작일        
-var commonEdd		=	DataSetBaCommon.NameValue(1,"edd");			//종료일        
-var commonMagamYn	=	DataSetBaCommon.NameValue(1,"magam_yn");	//마감여부      
-var commonWorkDate	=	DataSetBaCommon.NameValue(1,"work_date");	//작업일자      
-var commonToday     =	DataSetBaCommon.NameValue(1,"today");	    //작업일자      
-var commonUserId	=   DataSetBaCommon.NameValue(1,"user_id");	    //사용자 Id
-var commonUserNm	=   DataSetBaCommon.NameValue(1,"user_nm");	    //사용자이름
-var commonBugaseyul =	DataSetBaCommon.NameValue(1,"bugaseyul");	//부가세율
-var commonUBuseoCd	=   DataSetBaCommon.NameValue(1,"u_buseo_cd");	//소속부서코드
-var commonBuseoNm	=   DataSetBaCommon.NameValue(1,"buseo_nm");	//소속부서명
-var commonUserCls	=   DataSetBaCommon.NameValue(1,"user_cls");	//사용자구분
-var commonUseCls	=   DataSetBaCommon.NameValue(1,"use_cls");		//사용구분 -- 부서별회계(20) 등 구분
+var commonWpId, commonWpNm, commonHoegyeKi, commonSdd, commonEdd, commonMagamYn, commonWorkDate, commonToday;
+var commonUserId, commonUserNm, commonBugaseyul, commonUBuseoCd, commonBuseoNm, commonUserCls, commonUseCls;
 
 var commonDataView  =	"";
 var tempWorkDate    =   "";                                         //일자 잘못입력 시 이전상태로 복귀하기 하기 위한 변수
 var newMagamCls     =   "F"; //새로운 월마감구분
 var popupObj = new Object();
 
-if(isNotNullCo(commonHoegyeKi)){
-	commonDataView = commonWpNm+" "+commonHoegyeKi+"기 ("+commonSdd.substring(0,4)+"."+commonSdd.substring(4,6)+"."+commonSdd.substring(6,8)+"-"+commonEdd.substring(0,4)+"."+commonEdd.substring(4,6)+"."+commonEdd.substring(6,8)+")    ";
-}
-
-//브라우저별 컨트롤 설정 -- IE10 관련작업
-function setCtrlForBrowser(){
-	//호환성 보기를 고려한 ie 버전 찾기(6.0이 IE10)
-	var trident = navigator.userAgent.match(/Trident\/(\d.\d)/i);
-	if(trident!=null && trident[1]=="6.0"){
-   		//input box -- size를 줄여줘야 함.
-    	var inputs = document.getElementsByTagName("input");
-        for(var i=0; i<inputs.length; i++){
-       		inputs[i].size = inputs[i].size - 3;
-        }
-	}	
-}
-
-//Common DataSet 로딩
-function loadDataSetBaCommon() {
-	document.write("<comment id='__NOSCRIPT_ID__'><object id=DataSetBaCommon classid=clsid:3267EA0D-B5D8-11D2-A4F9-00608CEBEE49 ></object></comment><SCRIPT>__ShowEmbedObject(__NOSCRIPT_ID__);</SCRIPT>");
-	document.write("<comment id='__NOSCRIPT_ID__'><object id=DataSetBaMagamCo classid=clsid:3267EA0D-B5D8-11D2-A4F9-00608CEBEE49 ></object></comment><SCRIPT>__ShowEmbedObject(__NOSCRIPT_ID__);</SCRIPT>");
-	document.write("<comment id='__NOSCRIPT_ID__'><object id='tr_bacommon' classid='clsid:0A2233AD-E771-11D2-973D-00104B15E56F' >");
-	document.write("	<param name='KeyName'	 value='toinb_dataid4'>");
-	document.write("	<param name='KeyValue'	 value='JSP(O:DataSetBaCommon=DataSetBaCommon, O:DataSetBaMagamCo=DataSetBaMagamCo)'>");
-	document.write("	<param name='Action'	 value='/servlet/GateServlet'>");
-	document.write("</object></comment><SCRIPT>__ShowEmbedObject(__NOSCRIPT_ID__);</SCRIPT>");
-}
-//설정 DataSet과 TR
-function loadSettingDsAndTrCo(){
-	document.write("<comment id='__NOSCRIPT_ID__'><object id=DataSetBaSetting classid=clsid:3267EA0D-B5D8-11D2-A4F9-00608CEBEE49 ></object></comment><SCRIPT>__ShowEmbedObject(__NOSCRIPT_ID__);</SCRIPT>");
-	document.write("<comment id='__NOSCRIPT_ID__'><object id='tr_setting_r' classid='clsid:0A2233AD-E771-11D2-973D-00104B15E56F' >");
-	document.write("	<param name='KeyName'	 value='toinb_dataid4'>");
-	document.write("	<param name='KeyValue'	 value='JSP(O:DataSetBaSetting=DataSetBaSetting)'>");
-	document.write("	<param name='Action'	 value='/servlet/GateServlet'>");
-	document.write("</object></comment><SCRIPT>__ShowEmbedObject(__NOSCRIPT_ID__);</SCRIPT>");
-}
-//Common Data Tr 실행
-function setDefaultDataCo(){
+// 공통 dataSet과 Tr
+g5Ready(function () {
+	var dsCommon = document.createElement("g5-dataset");
+	var dsMagam = document.createElement("g5-dataset");
+	var dsWpSetting = document.createElement("g5-dataset");
+	var dsControl = document.createElement("g5-dataset");
+	
+	var trCommon = document.createElement("g5-tr");
+	var trWpSetting = document.createElement("g5-tr");
+	var trControlOut = document.createElement("g5-tr");
+	var trControlIn = document.createElement("g5-tr");
+	
+	dsCommon.id = "DataSetBaCommon";
+	dsMagam.id = "DataSetBaMagamCo";
+	dsWpSetting.id = "DataSetBaSetting";
+	dsControl.id = "DataSetBaControl";
+	
+	trCommon.id = "tr_bacommon";
+	trWpSetting.id = "tr_setting_r";
+	trControlOut.id = "tr_bacontrol";
+	trControlIn.id = "tr_bacontrol_in";
+	
+	trCommon.innerHTML     = "<param name='KeyName' value='toinb_dataid4'><param name='KeyValue' value='JSP(O:DataSetBaCommon=DataSetBaCommon, O:DataSetBaMagamCo=DataSetBaMagamCo)'><param name='Action' value='/servlet/GateServlet'>";
+	trWpSetting.innerHTML  = "<param name='KeyName' value='toinb_dataid4'><param name='KeyValue' value='JSP(O:DataSetBaSetting=DataSetBaSetting)'><param name='Action' value='/servlet/GateServlet'>";
+	trControlOut.innerHTML = "<param name=KeyName value=toinb_dataid4><param name=KeyValue value=JSP(O:DataSetBaControl=DataSetBaControl)><param name=Action value=/servlet/GateServlet>";
+	trControlIn.innerHTML  = "<param name=KeyName value=toinb_dataid4><param name=KeyValue value=JSP(I:DataSetBaControl=DataSetBaControl)><param name=Action value=/servlet/GateServlet>";
+	
+	document.head.appendChild(dsCommon);
+	document.head.appendChild(dsMagam);
+	document.head.appendChild(dsWpSetting);
+	document.head.appendChild(dsControl);
+	document.head.appendChild(trCommon);
+	document.head.appendChild(trWpSetting);
+	document.head.appendChild(trControlOut);
+	document.head.appendChild(trControlIn);
+	
 	tr_bacommon.Parameters = "jobId=JobBaCommon";
 	tr_bacommon.post();
-}
-
-// 작업일자(em_work_date와 작업일자 임시저장 setting)
-function setCommonDataCo(){
-	if(isNullCo(parent.window.saveWorkDate)) em_work_date.Text = DataSetBaCommon.NameValue(1,"work_date");
-	else em_work_date.Text = parent.window.saveWorkDate;
-	tempWorkDate = em_work_date.Text;
-}	
-// 세션정보 check - DataSetBaCommon이 생성됐는 지 check
-function locationLoginYnCheck(){
+	
+	var hwamyeonId = getHwamyeonIdCo().toLowerCase();
+	var endIndex = hwamyeonId.lastIndexOf("_");
+	tr_bacontrol.Parameters = "jobId=JobBaSelect,daoId=getControlList:hwamyeonId="+hwamyeonId.substring(0,endIndex);
+	tr_bacontrol.post();
+	
+	commonWpId      = DataSetBaCommon.NameValue(1,"wp_id").val;
+	commonWpNm      = DataSetBaCommon.NameValue(1,"wp_nm").val;			//사업장명      
+	commonHoegyeKi	= DataSetBaCommon.NameValue(1,"hoegye_ki").val;		//회계기        
+	commonSdd		= DataSetBaCommon.NameValue(1,"sdd").val;			//시작일        
+	commonEdd		= DataSetBaCommon.NameValue(1,"edd").val;			//종료일        
+	commonMagamYn	= DataSetBaCommon.NameValue(1,"magam_yn").val;		//마감여부      
+	commonWorkDate	= DataSetBaCommon.NameValue(1,"work_date").val;		//작업일자      
+	commonToday     = DataSetBaCommon.NameValue(1,"today").val;	    	//작업일자      
+	commonUserId	= DataSetBaCommon.NameValue(1,"user_id").val;	    //사용자 Id
+	commonUserNm	= DataSetBaCommon.NameValue(1,"user_nm").val;	    //사용자이름
+	commonBugaseyul = DataSetBaCommon.NameValue(1,"bugaseyul").val;		//부가세율
+	commonUBuseoCd	= DataSetBaCommon.NameValue(1,"u_buseo_cd").val;	//소속부서코드
+	commonBuseoNm	= DataSetBaCommon.NameValue(1,"buseo_nm").val;		//소속부서명
+	commonUserCls	= DataSetBaCommon.NameValue(1,"user_cls").val;		//사용자구분
+	commonUseCls	= DataSetBaCommon.NameValue(1,"use_cls").val;		//사용구분 -- 부서별회계(20) 등 구분
+	
 	if(DataSetBaCommon.CountRow==0){
 		alert(" 시간초과 등 접속오류로  로그인 정보가 없습니다. \n\n 로그인 하시기 바랍니다. ");
 		//팝업이면 팝업창 종료하고 팝업이 아니면 초기화면으로 이동
 		if(window.dialogArguments==undefined) top.document.location.href = "/logout.jsp";
 		else window.close();
 	}
-}
+
+	if(isNotNullCo(commonHoegyeKi)){
+		commonDataView = commonWpNm+" "+commonHoegyeKi+"기 ("+commonSdd.substring(0,4)+"."+commonSdd.substring(4,6)+"."+commonSdd.substring(6,8)+"-"+commonEdd.substring(0,4)+"."+commonEdd.substring(4,6)+"."+commonEdd.substring(6,8)+")    ";
+	}
+});
+
+// 작업일자(em_work_date와 작업일자 임시저장 setting)
+function setCommonDataCo(){
+	if(isNullCo(parent.window.saveWorkDate)) em_work_date.Text = DataSetBaCommon.NameValue(1,"work_date").val;
+	else em_work_date.Text = parent.window.saveWorkDate;
+	tempWorkDate = em_work_date.Text;
+}	
 //설정 data 가져오기
 function getSettingDataCo(userId,knd,settingId,wpId){
-	var params = "jobId=JobBaSetting,userId="+userId+",knd="+knd+",settingId="+settingId+",strWpId="+wpId;
-	//alert(params);
-    tr_setting_r.Parameters = params;
-    tr_setting_r.post();
-    if(isNotNullCo(settingId)) return DataSetBaSetting.NameValue(1,"value_01");
+	var tempUserId = "1";
+	if(isNotNullCo(userId)) tempUserId = userId;
+	var urlStr = "/servlet/GateAjax";
+	var param = "?taskCls=johoeOne&johoeCls=oneSettingData&settingId="+settingId+"&tempUserId="+tempUserId;
+	urlStr = urlStr  + param;
+	const xhr = new XMLHttpRequest();
+	xhr.open("GET", urlStr, false); 							// 동기(false) ,비동기(true)
+	xhr.setRequestHeader("x-requested-with", "XMLHttpRequest"); //헤더 정보가 필요한 경우에만 추가
+	xhr.send();
+	if(xhr.status == 200) { 									//GET 요청에 대해 성공적인경우
+	    return JSON.parse(xhr.responseText).settingData; 		// 서버로부터 받은 데이터
+	} else {
+	    console.error("요청 실패"); 							// 오류 발생 시 메시지를 출력
+	}
 }
 // 회계기 체크
 function checkHoegyeKiRegCo(){
-	if(DataSetBaCommon.NameValue(DataSetBaCommon.RowPosition,"hoegye_ki")=="" || DataSetBaCommon.NameValue(DataSetBaCommon.RowPosition,"hoegye_ki")=="0" ){
+	if(DataSetBaCommon.NameValue(DataSetBaCommon.RowPosition,"hoegye_ki").val=="" || DataSetBaCommon.NameValue(DataSetBaCommon.RowPosition,"hoegye_ki").val=="0" ){
 		alert("현재 날짜에 맞는 회계기가 등록되지 않았습니다. \n회계기를 먼저 등록해주세요.\n등록후 로그아웃 한 후 로그인을 해주세요.");
 		return false;
 	}
@@ -112,30 +124,42 @@ function searchWolMagamClsCo(yyyymmdd){
 	if(isNullCo(yyyymmdd)) return;
 	var yyyymm = yyyymmdd.substring(0,6);
 	for(var i=1; i<=DataSetBaMagamCo.CountRow; i++){
-		if(yyyymm==DataSetBaMagamCo.NameValue(i, "yyyymm"))
-			newMagamCls = DataSetBaMagamCo.NameValue(i,"hoegye_magam_cls");
+		if(yyyymm==DataSetBaMagamCo.NameValue(i, "yyyymm").val)
+			newMagamCls = DataSetBaMagamCo.NameValue(i,"hoegye_magam_cls").val;
 	}
 }
 // Button조정
 function btnControlCo(searchCls, cancelCls, saveCls, insertCls, deleteCls, excelCls, printCls){
 	var e;
 	try	{
-	  subbutton.control(searchCls, cancelCls, saveCls, insertCls, deleteCls, excelCls, printCls, titleOn, logoutOn, mymenuOn, hoegyekiOn);
+		var leftBtnList  = 1;
+		var rightBtnList = 1;
+		var settingCls = 1;
+	  subbutton.control(searchCls, cancelCls, saveCls, insertCls, deleteCls, excelCls, printCls, settingCls, leftBtnList, rightBtnList);
 	}catch (e){}
 }
 // 팝업에서 Button조정
 function btnControlPopupCo(searchCls, cancelCls, saveCls, insertCls, deleteCls, excelCls, printCls){
 	var e;
 	try	{
-	  subbutton.control(searchCls, cancelCls, saveCls, insertCls, deleteCls, excelCls, printCls, titleNo, logoutNo, mymenuNo, hoegyekiNo);
+		var leftBtnList  = 1;
+		var rightBtnList = -1;
+		var settingCls = 1;
+	  subbutton.control(searchCls, cancelCls, saveCls, insertCls, deleteCls, excelCls, printCls, settingCls, leftBtnList, rightBtnList);
 	}catch (e){}
+}
+// 현재 화면 id가져오기 -- control DataSet 가져올때 이용
+function getHwamyeonIdCo(){
+		var startIndex = location.pathname.lastIndexOf("/")+1;
+		var endIndex = location.pathname.lastIndexOf(".");
+		return location.pathname.substring(startIndex,endIndex);
 }
 // null 값check
 function isNullCo(itemValid) {
 	if(itemValid!=null&&typeof(itemValid)!='undefined')  itemValid = lrtrimCo(itemValid+"");
  	if( itemValid == "" || itemValid == null || typeof(itemValid)=='undefined' || itemValid == "null") 
 	return true;
-	
+
  	return false;
 }
 
@@ -143,7 +167,7 @@ function isNotNullCo(itemValid) {
 	if(itemValid!=null&&typeof(itemValid)!='undefined')  itemValid = lrtrimCo(itemValid+"");
  	if( itemValid == "" || itemValid == null || typeof(itemValid)=='undefined' || itemValid == "null") 
 	return false;
-	
+
  	return true;
 }
 
@@ -208,13 +232,13 @@ function addDateCo( inYyyymmdd, gap){
     var inMm   = inYyyymmdd.substring(4,6)-1;
     var inDd   = inYyyymmdd.substring(6,8);
 	var gijunDate = new Date(inYyyy,inMm,inDd);
-	
+
 	gijunDate.setTime(gijunDate.getTime()+(gap*24*60*60*1000));
 	var outYyyy = gijunDate.getFullYear(); 
 	var outMm   = makeTwoCharCo(gijunDate.getMonth()+1);
 	var outDd   = makeTwoCharCo(gijunDate.getDate());
 	var rtnDate = ""+outYyyy+outMm+outDd;
-	
+
 	return rtnDate;
 }
 // yyyymmdd로 Date 객체 만들기
@@ -266,7 +290,7 @@ function keyDownCo2(elmt){
 }	
 // calendar(날짜 조회함수) 
 function calendarCo(callFunction){
-	var winObj = window.showModalDialog("/js/calendar.html", window, "dialogWidth:170px; dialogHeight:193px; center=0; status:0; scroll=no; help:no;");
+	var winObj = window.showModalDialog("/js/calendar.html", window, "dialogwidth:170px;dialogheight:193px;center:0;status:0;scroll:no;help:no;");
 
 	if(typeof(winObj) == "object") {
 		em_work_date.Text = winObj.yyyymmdd;
@@ -275,7 +299,7 @@ function calendarCo(callFunction){
 }
 // calendar(날짜 조회함수) 
 function calendarCo2(){
-	var winObj = window.showModalDialog("/js/calendar.html", window, "dialogWidth:170px; dialogHeight:193px; center=0; status:0; scroll=no; help:no;");
+	var winObj = window.showModalDialog("/js/calendar.html", window, "dialogwidth:170px;dialogheight:193px;center:0;status:0;scroll:no;help:no;");
 
 	if(typeof(winObj) == "object") {
 		em_work_date.Text = winObj.yyyymmdd;
@@ -349,7 +373,7 @@ function chkPatten(field,patternGubun,trimYn,uplowerCase,removeEtc) {
 	var regId			= /^[a-zA-Z]{1}[a-zA-Z0-9_-]{4,15}$/; 
     var regDate			=/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/; 
     var regDomain		=/^[.a-zA-Z0-9-]+.[a-zA-Z]+$/;
-     	
+
 	var pattern = getMakePattern(field, patternGubun);
 	var fieldValue = field.value;
 	if(!fieldValue) return true; 	// 값이 없을때 리턴
@@ -364,7 +388,7 @@ function chkPatten(field,patternGubun,trimYn,uplowerCase,removeEtc) {
 		if(removeEtc=="etc") fieldValue = etcTrimCo(fieldValue);			    //기타제거
 		field.value = fieldValue;
 	}
-	
+
 	pattern = eval(pattern); //개체로 변환하며 개체의 값을 변환
 	var re = new RegExp(pattern); 
 	if(!re.test(fieldValue)){ 
@@ -470,7 +494,7 @@ function changeBgColor(count){
 	var bgColor = "";
 	if(count%2==0) bgColor="#ffffff";
 	else  bgColor="#e8e8e8";
-	
+
 	return bgColor;
 }
 
@@ -489,23 +513,23 @@ function logOutCo(){
 //----------------------------------------------------------------------------------
 // ###########################  Pop Up 관련 ######################################
 //----------------------------------------------------------------------------------
-// 메세지 팝업
+// 메세지 팝업 - 팝업의 return값을 활용하려면 html에서 callbackForMsgBoxCo을 정의하고 그 안에서 처리해야 함.
 function msgBoxPopupCo(pType,pValue){
 	popupObj.type = pType;
 	popupObj.value = pValue;
-	if(pType==1) return winObj = window.showModalDialog("/html/msgBox.html", popupObj, "dialogWidth:320px; dialogHeight:100px; center=1; status:0; scroll=no; help:no;");
-	else if(pType==2) return winObj = window.showModalDialog("/html/msgBox.html", popupObj, "dialogWidth:320px; dialogHeight:200px; center=1; status:0; scroll=no; help:no;");
-	else if(pType==3) return winObj = window.showModalDialog("/html/msgBox.html", popupObj, "dialogWidth:270px; dialogHeight:120px; center=1; status:0; scroll=no; help:no;");
-	else if(pType==4) return winObj = window.showModalDialog("/html/msgBox.html", popupObj, "dialogWidth:270px; dialogHeight:120px; center=1; status:0; scroll=no; help:no;");
-	else if(pType==5) return winObj = window.showModalDialog("/html/msgBox.html", popupObj, "dialogWidth:300px; dialogHeight:150px; center=1; status:0; scroll=no; help:no;");
-	else if((pType==6)||(pType==7)||(pType==8)) return winObj = window.showModalDialog("/html/msgBox.html", popupObj, "dialogWidth:360px; dialogHeight:180px; center=1; status:0; scroll=no; help:no;");
-	else if(pType==9) return winObj = window.showModalDialog("/html/msgBox.html", popupObj, "dialogWidth:300px; dialogHeight:150px; center=1; status:0; scroll=no; help:no;");
+	if(pType==1) window.showModalDialog("/html/msgBox_5.html", popupObj, "dialogwidth:320px;dialogheight:100px;center:1;status:0;scroll:no;help:no;");
+	else if(pType==2) window.showModalDialog("/html/msgBox_5.html", popupObj, "dialogwidth:320px;dialogheight:200px;center:1;status:0;scroll:no;help:no;","callbackForMsgBoxCo");
+	else if(pType==3) window.showModalDialog("/html/msgBox_5.html", popupObj, "dialogwidth:270px;dialogheight:120px;center:1;status:0;scroll:no;help:no;");
+	else if(pType==4) window.showModalDialog("/html/msgBox_5.html", popupObj, "dialogwidth:270px;dialogheight:120px;center:1;status:0;scroll:no;help:no;");
+	else if(pType==5) window.showModalDialog("/html/msgBox_5.html", popupObj, "dialogwidth:300px;dialogheight:150px;center:1;status:0;scroll:no;help:no;");
+	else if((pType==6)||(pType==7)||(pType==8)) window.showModalDialog("/html/msgBox_5.html", popupObj, "dialogwidth:360px;dialogheight:180px;center:1;status:0;scroll:no;help:no;");
+	else if(pType==9) window.showModalDialog("/html/msgBox_5.html", popupObj, "dialogwidth:300px;dialogheight:150px;center:1;status:0;scroll:no;help:no;");
 }
 //사원팝업
 function sawonPopupCo(sawonPopupParam){
 	try{
-		return window.showModalDialog("/html/ba760.html", sawonPopupParam, "dialogWidth:325px; dialogHeight:470px; center=1; status:0; scroll=no; help:no;");
-		//return window.showModalDialog("/html/ba902.html", sawonPopupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+		return window.showModalDialog("/html/ba760_5.html", sawonPopupParam, "dialogwidth:305px;dialogheight:470px;center:1;status:0;scroll:no;help:no;");
+		//return window.showModalDialog("/html/ba902.html", sawonPopupParam, "dialogwidth:325px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
     }catch(e){
       	//alert(e.message);
     	alert(" 팝업이 차단되어 있는 것 같습니다. \n\n 팝업 차단을 해제해 주세요! ");
@@ -513,28 +537,28 @@ function sawonPopupCo(sawonPopupParam){
 }
 //금융회사정보팝업(카드,은행구분)
 function geumyungPopupCo(popupParam){
-	return winObj  = window.showModalDialog("/html/ba903.html", popupParam, "dialogWidth:325px; dialogHeight:470Px; center=1; status:0; scroll=no; help:no;");
+	return winObj  = window.showModalDialog("/html/ba903_5.html", popupParam, "dialogwidth:370px;dialogheight:470Px;center:1;status:0;scroll:no;help:no;");
 }
 //직급팝업
 function jikgeupPopupCo(jikgeupPopupParam){
-	return window.showModalDialog("/html/ba904.html", jikgeupPopupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba904_5.html", jikgeupPopupParam, "dialogwidth:325px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //부서팝업
 function buseoPopupCo(buseoPopupParam){
-	return window.showModalDialog("/html/ba905.html", buseoPopupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba905_5.html", buseoPopupParam, "dialogwidth:305px;dialogheight:430px;center:1;status:0;scroll:no;help:no;");
 }
 //선택용 팝업(부서 등)
 function selectPopupCo(buseoPopupParam){
-	return window.showModalDialog("/html/ba902.html", buseoPopupParam, "dialogWidth:335px; dialogHeight:455px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba902_5.html", buseoPopupParam, "dialogwidth:335px;dialogheight:455px;center:1;status:0;scroll:no;help:no;");
 }
 //거래처팝업
 function clntPopupCo(clntPopupParam){
-	return window.showModalDialog("/html/ba906.html", clntPopupParam, "dialogWidth:325px; dialogHeight:550px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba906_5.html", clntPopupParam, "dialogwidth:325px;dialogheight:550px;center:1;status:0;scroll:no;help:no;");
 }
 //프로젝트팝업
 function projPopupCo(projPopupParam){
 	try{
-		return window.showModalDialog("/html/ba907.html", projPopupParam, "dialogWidth:610px; dialogHeight:600px; center=1; status:0; scroll=no; help:no");
+		return window.showModalDialog("/html/ba907_5.html", projPopupParam, "dialogwidth:610px;dialogheight:700px;center:1;status:0;scroll:no;help:no;");
     }catch(e){
       	//alert(e.message);
     	alert(" 팝업이 차단되어 있는 것 같습니다. \n\n 팝업 차단을 해제해 주세요! ");
@@ -542,379 +566,379 @@ function projPopupCo(projPopupParam){
 }
 //수주정보 추가등록
 function sujuChugaRegPopupCo(sujuPopupParam){
-	return window.showModalDialog("/html/ba909.html", sujuPopupParam, "dialogWidth:450px; dialogHeight:350px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba909_5.html", sujuPopupParam, "dialogwidth:450px;dialogheight:350px;center:1;status:0;scroll:no;help:no;");
 }
 //거래처별 정산할 내역
 function clntNaeyeokPopupCo(naeyeokPopupParam){
-	return window.showModalDialog("/html/ba920.html", naeyeokPopupParam, "dialogWidth:600px; dialogHeight:550px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba920_5.html", naeyeokPopupParam, "dialogwidth:600px;dialogheight:550px;center:1;status:0;scroll:no;help:no;");
 }
 //정산할 내역 : 특정거래처의 정산할 잔액 등 조회하는 팝업
 function naeyeokPopupCo(naeyeokPopupParam){
-	return window.showModalDialog("/html/ba921.html", naeyeokPopupParam, "dialogWidth:400px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba921_5.html", naeyeokPopupParam, "dialogwidth:400px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //정산할 외화내역 : 외화 정산할 잔액 등 조회하는 팝업
 function oehwaNaeyeokPopupCo(oehwaNaeyeokPopupParam){
-	return window.showModalDialog("/html/ba922.html", oehwaNaeyeokPopupParam, "dialogWidth:400px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba922_5.html", oehwaNaeyeokPopupParam, "dialogwidth:400px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //일자별 여신내역
 function yeosinNaeyeokPopupCo(naeyeokPopupParam){
-	return window.showModalDialog("/html/ba927.html", naeyeokPopupParam, "dialogWidth:380px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba927_5.html", naeyeokPopupParam, "dialogwidth:380px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //항목수정팝업
 function itemUpdatePopupCo(popupParam){
 	if(newMagamCls=="T") return; //마감되었으면 수정 불가.
-	return winObj = window.showModalDialog("/html/ba941.html", popupParam, "dialogWidth:500px; dialogHeight:220px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba941_5.html", popupParam, "dialogwidth:500px;dialogheight:220px;center:1;status:0;scroll:no;help:no;");
 }
 //일반거래분개 수정
 function ilbanGeoraeUpdatePopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba943.html", popupParam, "dialogWidth:1000px; dialogHeight:650px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba943_5.html", popupParam, "dialogwidth:1000px;dialogheight:650px;center:1;status:0;scroll:no;help:no;");
 }
 //일반거래분개 수정(컨설턴트용)
 function ilbanUpdateForConstPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba947.html", popupParam, "dialogWidth:1000px; dialogHeight:650px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba947_5.html", popupParam, "dialogwidth:1000px;dialogheight:650px;center:1;status:0;scroll:no;help:no;");
 }
 //구분내역 값과 설명 팝업
 function gubunNaeyeokPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba942.html", popupParam, "dialogWidth:580px; dialogHeight:400px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba942_5.html", popupParam, "dialogwidth:580px;dialogheight:400px;center:1;status:0;scroll:no;help:no;");
 }
 //계정팝업
 function acctPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba951.html", popupParam, "dialogWidth:325px; dialogHeight:500px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba951_5.html", popupParam, "dialogwidth:325px;dialogheight:500px;center:1;status:0;scroll:no;help:no;");
 }
 //복수계정(복수계정 선택)
 function multiAcctPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba950.html", popupParam, "dialogWidth:600px; dialogHeight:520px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba950_5.html", popupParam, "dialogwidth:600px;dialogheight:520px;center:1;status:0;scroll:no;help:no;");
 }
 //외화매출매입 거래
 function oehwaPopupCo(oehwaPopupParam){
-	return window.showModalDialog("/html/ba953.html", oehwaPopupParam, "dialogWidth:800px; dialogHeight:470px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba953_5.html", oehwaPopupParam, "dialogwidth:800px;dialogheight:470px;center:1;status:0;scroll:no;");
 }
 //계정유형
 function acctKndPopupCo(){
-	return winObj =window.showModalDialog("ba954.html", window, "dialogWidth:325px; dialogHeight:348px; center=1; status:0; scroll=no; help:no;");
+	return winObj =window.showModalDialog("ba954_5.html", window, "dialogwidth:325px;dialogheight:348px;center:1;status:0;scroll:no;help:no;");
 }
 //적요정보팝업
 function jeokyoPopupCo(jeokyoPopupParam){
-	return window.showModalDialog("/html/ba955.html", jeokyoPopupParam, "dialogWidth:525px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba955_5.html", jeokyoPopupParam, "dialogwidth:525px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //창고코드
 function changgoPopupCo(){
-	return window.showModalDialog("/html/ba956.html", window, "dialogWidth:325px; dialogHeight:348px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba956_5.html", window, "dialogwidth:325px;dialogheight:350px;center:1;status:0;scroll:no;help:no;");
 }
 //재고(품목)정보팝업
 function jaegoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba957.html", popupParam, "dialogWidth:325px; dialogHeight:500px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba957_5.html", popupParam, "dialogwidth:325px;dialogheight:500px;center:1;status:0;scroll:no;help:no;");
 }
 //재고(품목)정보팝업2  -- 주로제조
 function jaegoPopupCo2(popupParam){
-	return window.showModalDialog("/html/ba925.html", popupParam, "dialogWidth:500px; dialogHeight:500px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba925_5.html", popupParam, "dialogwidth:500px;dialogheight:500px;center:1;status:0;scroll:no;help:no;");
 }
 //재고정보팝업(수정용 - 재발주소요량 관련)
 function jaegoUpdatePopupCo(popupParam){
-	return window.showModalDialog("/html/ba928.html", popupParam, "dialogWidth:580px; dialogHeight:600px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba928_5.html", popupParam, "dialogwidth:580px;dialogheight:600px;center:1;status:0;scroll:no;help:no;");
 }
 //자동코드생성
 function autoCodePopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba923.html", popupParam, "dialogWidth:500px; dialogHeight:220px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba923_5.html", popupParam, "dialogwidth:500px;dialogheight:220px;center:1;status:0;scroll:no;help:no;");
 }
 //BOM 복사
 function copyBomPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba924.html", popupParam, "dialogWidth:500px; dialogHeight:220px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba924_5.html", popupParam, "dialogwidth:500px;dialogheight:220px;center:1;status:0;scroll:no;help:no;");
 }
 //수주정보검색
 function getSujuPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba929.html", popupParam, "dialogWidth:900px; dialogHeight:435px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba929_5.html", popupParam, "dialogwidth:900px;dialogheight:435px;center:1;status:0;scroll:no;help:no;");
 }
 //수주내역선택
 function getSujuDetlCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba926.html", popupParam, "dialogWidth:900px; dialogHeight:520px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba926_5.html", popupParam, "dialogwidth:900px;dialogheight:520px;center:1;status:0;scroll:no;help:no;");
 }
 //관리항목
 function mgtItemPopupCo(popupParam){
-	return winObj =window.showModalDialog("ba958.html", popupParam, "dialogWidth:525px; dialogHeight:500px; center=1; status:0; scroll=no; help:no;");
+	return winObj =window.showModalDialog("ba958_5.html", popupParam, "dialogwidth:525px;dialogheight:500px;center:1;status:0;scroll:no;help:no;");
 }
 //제조정보팝업
 function jejoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba959.html", popupParam, "dialogWidth:430px; dialogHeight:400px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba959_5.html", popupParam, "dialogwidth:430px;dialogheight:400px;center:1;status:0;scroll:no;help:no;");
 }
 //계정팝업(제조원가명세)
 function acctPopup2Co(popupParam){
-	return winObj = window.showModalDialog("/html/ba960.html", popupParam, "dialogWidth:325px; dialogHeight:500px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba960_5.html", popupParam, "dialogwidth:325px;dialogheight:500px;center:1;status:0;scroll:no;help:no;");
 }
 //계정기초명세
 function acctGichoMyeongsePopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba961.html", popupParam, "dialogWidth:330px; dialogHeight:320px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba961_5.html", popupParam, "dialogwidth:330px;dialogheight:320px;center:1;status:0;scroll:no;help:no;");
 }
 //공장코드
 function gongjangPopupCo(popupParam){
-	return window.showModalDialog("/html/ba962.html", popupParam, "dialogWidth:370px; dialogHeight:350px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba962_5.html", popupParam, "dialogwidth:370px;dialogheight:350px;center:1;status:0;scroll:no;help:no;");
 }
 //공정코드
 function gongjeongPopupCo(popupParam){
-	return window.showModalDialog("/html/ba978.html", popupParam, "dialogWidth:370px; dialogHeight:350px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba978_5.html", popupParam, "dialogwidth:370px;dialogheight:350px;center:1;status:0;scroll:no;help:no;");
 }
 //작업단위팝업
 function taskUnitPopupCo(popupParam){
-	return window.showModalDialog("/html/ba979.html", popupParam, "dialogWidth:370px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba979_5.html", popupParam, "dialogwidth:370px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 
 //계산서팝업
 function gyesanseoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba963.html", popupParam, "dialogWidth:550px; dialogHeight:230px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba963_5.html", popupParam, "dialogwidth:550px;dialogheight:230px;center:1;status:0;scroll:no;help:no;");
 }
 
 //선택팝업(예, 아니오 선택)
 function choosePopupCo(popupParam){
-	return window.showModalDialog("/html/ba964.html", popupParam, "dialogWidth:420px; dialogHeight:200px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba964_5.html", popupParam, "dialogwidth:420px;dialogheight:200px;center:1;status:0;scroll:no;help:no;");
 }
 
 //한건의 금액 입력을 위한 popup -- 예)수입부가세 공급가액 입력
 function inputPopupCo(popupParam){
-	return window.showModalDialog("/html/ba965.html", popupParam, "dialogWidth:380px; dialogHeight:200px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba965_5.html", popupParam, "dialogwidth:380px;dialogheight:200px;center:1;status:0;scroll:no;help:no;");
 }
 //프린트 셋팅
 function printPopupParamCo(printPopupParam){
-	return window.showModalDialog("/html/ba967.html", printPopupParam, "dialogWidth:320px; dialogHeight:300px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba967_5.html", printPopupParam, "dialogwidth:320px;dialogheight:300px;status:0;scroll:no");
 }
 //거래번호에 대한 거래내역
 function perGeoraeNaeyeokParamCo(popupParam){
-	return window.showModalDialog("/html/ba968.html", popupParam, "dialogWidth:880px; dialogHeight:400px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba968_5.html", popupParam, "dialogwidth:880px;dialogheight:400px;center:1;status:0;scroll:no;help:no;");
 }
 //프린트 셋팅
 function printPopupParamCo2(printPopupParam3){
-	return window.showModalDialog("/html/ba969.html", printPopupParam3, "dialogWidth:320px; dialogHeight:330px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba969_5.html", printPopupParam3, "dialogwidth:320px;dialogheight:330px;status:0;scroll:no");
 }
 //계산서 세부등록 셋팅
 function gyesanseoItemPopupParamCo(gyesanseoItemPopupParam){
-	return window.showModalDialog("/html/ba970.html", gyesanseoItemPopupParam, "dialogWidth:880px; dialogHeight:310px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba970_5.html", gyesanseoItemPopupParam, "dialogwidth:880px;dialogheight:310px;status:0;scroll:no");
 }
 //계산서 환입세부등록 셋팅
 function gyesanseoItemPopupParam2Co(gyesanseoItemPopupParam){
-	return window.showModalDialog("/html/ba974.html", gyesanseoItemPopupParam, "dialogWidth:880px; dialogHeight:310px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba974_5.html", gyesanseoItemPopupParam, "dialogwidth:880px;dialogheight:310px;status:0;scroll:no");
 }
 //재고 입력내역 불러오기
 function jaegoMgtPopupParamCo(jaegoMgtPopupParam){
-	return window.showModalDialog("/html/ba971.html", jaegoMgtPopupParam, "dialogWidth:485px; dialogHeight:450px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba971_5.html", jaegoMgtPopupParam, "dialogwidth:485px;dialogheight:450px;status:0;scroll:no");
 }
 //입출고관리
 function ipchulgoMgtPopupCo(popup3ParamCo){
-	return window.showModalDialog("/html/ba972.html", popup3ParamCo, "dialogWidth:920px; dialogHeight:520px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba972_5.html", popup3ParamCo, "dialogwidth:920px;dialogheight:520px;status:0;scroll:no");
 }
 //전재고관리
 function allJaegoMgtPopupCo(popup3ParamCo){
-	return window.showModalDialog("/html/ba973.html", popup3ParamCo, "dialogWidth:940px; dialogHeight:520px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba973_5.html", popup3ParamCo, "dialogwidth:940px;dialogheight:520px;status:0;scroll:no");
 }
 //전재고수량금액
 function allJaegoQtyAmtPopupCo(popup3ParamCo){
-	return window.showModalDialog("/html/ba757.html", popup3ParamCo, "dialogWidth:980px; dialogHeight:520px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba757_5.html", popup3ParamCo, "dialogwidth:980px;dialogheight:520px;status:0;scroll:no");
 }
 //해당분개내역이 있는 거래처
 function bungaeClntPopupCo(popup3ParamCo){
-	return window.showModalDialog("/html/ba975.html", popup3ParamCo, "dialogWidth:360px; dialogHeight:420px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba975_5.html", popup3ParamCo, "dialogwidth:360px;dialogheight:420px;center:1;status:0;scroll:no;help:no;");
 }
 //거래처명세
 function clnt1MyeongsePopupCo(){
-	return winObj =window.showModalDialog("ba976.html", null, "dialogWidth:920px; dialogHeight:520px; status:0; scroll=no");
+	return winObj =window.showModalDialog("ba976_5.html", null, "dialogwidth:920px;dialogheight:520px;status:0;scroll:no");
 }
 //발주번호 popup
 function baljuNoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba977.html", popupParam, "dialogWidth:550px; dialogHeight:460px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba977_5.html", popupParam, "dialogwidth:550px;dialogheight:460px;status:0;scroll:no");
 }
 //수주정보 popup
 function sujuNoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba980.html", popupParam, "dialogWidth:485px; dialogHeight:470px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba980_5.html", popupParam, "dialogwidth:485px;dialogheight:470px;status:0;scroll:no");
 }
 //생산계획번호 popup
 function prodPlanNoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba981.html", popupParam, "dialogWidth:485px; dialogHeight:420px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba981_5.html", popupParam, "dialogwidth:485px;dialogheight:420px;status:0;scroll:no");
 }
 //생산지시번호 popup
 function prodJisiNoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba982.html", popupParam, "dialogWidth:510px; dialogHeight:420px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba982_5.html", popupParam, "dialogwidth:510px;dialogheight:420px;status:0;scroll:no");
 }
 //불출리스트번호 popup
 function bulchulListNoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba983.html", popupParam, "dialogWidth:485px; dialogHeight:420px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba983_5.html", popupParam, "dialogwidth:485px;dialogheight:420px;status:0;scroll:no");
 }
 //입출고관리번호 popup
 function inoutMgtNoByProdJisiPopupCo(popupParam){
-	return window.showModalDialog("/html/ba984.html", popupParam, "dialogWidth:485px; dialogHeight:420px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba984_5.html", popupParam, "dialogwidth:485px;dialogheight:420px;status:0;scroll:no");
 }
 //추가출고요청번호  popup
 function chugaAskPopupCo(popupParam){
-	return window.showModalDialog("/html/ba985.html", popupParam, "dialogWidth:485px; dialogHeight:420px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba985_5.html", popupParam, "dialogwidth:485px;dialogheight:420px;status:0;scroll:no");
 }
 //생산지시번호 popup(제조불출화면용)
 function prodJisiForJejoBulchulPopupCo(popupParam){
-	return window.showModalDialog("/html/ba986.html", popupParam, "dialogWidth:650px; dialogHeight:450px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba986_5.html", popupParam, "dialogwidth:650px;dialogheight:450px;status:0;scroll:no");
 }
 //출하요청번호 popup
 function chulhaAskNoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba987.html", popupParam, "dialogWidth:485px; dialogHeight:420px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba987_5.html", popupParam, "dialogwidth:485px;dialogheight:420px;status:0;scroll:no");
 }
 //지역팝업
 function areaPopupCo(popupParam){
-	return window.showModalDialog("/html/ba911.html", popupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba911_5.html", popupParam, "dialogwidth:325px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //국가팝업
 function nationPopupCo(popupParam){
-	return window.showModalDialog("/html/ba912.html", popupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba912_5.html", popupParam, "dialogwidth:325px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //도시팝업
 function cityPopupCo(popupParam){
-	return window.showModalDialog("/html/ba913.html", popupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba913_5.html", popupParam, "dialogwidth:325px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //항만팝업
 function stationPopupCo(popupParam){
-	return window.showModalDialog("/html/ba914.html", popupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba914_5.html", popupParam, "dialogwidth:325px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //작업그룹
 function workGroupPopupCo(popupParam){
-	return window.showModalDialog("/html/ba915.html", popupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba915_5.html", popupParam, "dialogwidth:325px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //근무조
 function geunmujoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba916.html", popupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba916_5.html", popupParam, "dialogwidth:325px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //급호
 function geuphoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba917.html", popupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba917_5.html", popupParam, "dialogwidth:325px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //급여항목유형
 function geupyeoItemKndPopupCo(popupParam){
-	return window.showModalDialog("/html/ba918.html", popupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba918_5.html", popupParam, "dialogwidth:325px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //급여항목
 function geupyeoItemPopupCo(popupParam){
-	return window.showModalDialog("/html/ba919.html", popupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba919_5.html", popupParam, "dialogwidth:325px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //근태종류
 function geuntaeKndPopupCo(popupParam){
-	return window.showModalDialog("/html/ba933.html", popupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba933_5.html", popupParam, "dialogwidth:325px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //상벌기본정보
 function sangbeolPopupCo(popupParam){
-	return window.showModalDialog("/html/ba939.html", popupParam, "dialogWidth:325px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba939_5.html", popupParam, "dialogwidth:325px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //기준일
 function gijunilPopupCo(popupParam){
-	return window.showModalDialog("/html/ba934.html", popupParam, "dialogWidth:275px; dialogHeight:400px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba934_5.html", popupParam, "dialogwidth:275px;dialogheight:400px;center:1;status:0;scroll:no;help:no;");
 }
 //선택월 급여 가져오기
 function selectMonthGeupyeoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba935.html", popupParam, "dialogWidth:540px; dialogHeight:100px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba935_5.html", popupParam, "dialogwidth:540px;dialogheight:100px;center:1;status:0;scroll:no;help:no;");
 }
 //교육번호 popup
 function eduNoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba937.html", popupParam, "dialogWidth:485px; dialogHeight:420px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba937_5.html", popupParam, "dialogwidth:485px;dialogheight:420px;status:0;scroll:no");
 }
 //발령번호 popup
 function balryeongNoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba938.html", popupParam, "dialogWidth:485px; dialogHeight:420px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba938_5.html", popupParam, "dialogwidth:485px;dialogheight:420px;status:0;scroll:no");
 }
 //증명서 발행번호 popup
 function balhaengNoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba940.html", popupParam, "dialogWidth:485px; dialogHeight:420px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba940_5.html", popupParam, "dialogwidth:485px;dialogheight:420px;status:0;scroll:no");
 }
 //급여이체
 function geupyeoIchePopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba397.html", popupParam, "dialogWidth:1000px; dialogHeight:600px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba397_5.html", popupParam, "dialogwidth:1000px;dialogheight:600px;center:1;status:0;scroll:no;help:no;");
 }
 //(세금) 계산서 지점발행
 function billJijeomPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba944.html", popupParam, "dialogWidth:370px; dialogHeight:170px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba944_5.html", popupParam, "dialogwidth:370px;dialogheight:170px;center:1;status:0;scroll:no;help:no;");
 }
 //선택품목 재고량
 function getSelJaegoQtyPopupCo(popupParam){
-	return window.showModalDialog("/html/ba945.html", popupParam, "dialogWidth:660px; dialogHeight:360px; status:0; scroll=no");
+	return window.showModalDialog("/html/ba945_5.html", popupParam, "dialogwidth:660px;dialogheight:360px;status:0;scroll:no");
 }
 //사원조회(종합)
 function getSawonJonghapPopupCo(popupParam){
-	return window.showModalDialog("/html/ba946.html", popupParam, "dialogWidth:425px; dialogHeight:560px;center=1; status:0; scroll=no; help:no;  resizable=yes;");
+	return window.showModalDialog("/html/ba946_5.html", popupParam, "dialogwidth:425px;dialogheight:560px;center:1;status:0;scroll:no;help:no;resizable:yes;");
 }
 //종전거래조회
 function jongjeonGeoraePopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba948.html", popupParam, "dialogWidth:950px; dialogHeight:600px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba948_5.html", popupParam, "dialogwidth:950px;dialogheight:600px;center:1;status:0;scroll:no;help:no;");
 }
 //세금계산서 정보입력 
 function billInfoPopupCo(popupParam){
-	return window.showModalDialog("/html/ba930.html", popupParam, "dialogWidth:480px; dialogHeight:200px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba930_5.html", popupParam, "dialogwidth:480px;dialogheight:200px;center:1;status:0;scroll:no;help:no;");
 }
 //미등록 거래처 일괄등록
 function ilgwalRegClntPopupCo(popupParam){
-	return window.showModalDialog("/html/ba988.html", popupParam, "dialogWidth:570px; dialogHeight:440px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba988_5.html", popupParam, "dialogwidth:570px;dialogheight:440px;center:1;status:0;scroll:no;help:no;");
 }
 //개인별 내역등록 팝업
 function regNaeyeokPopupCo(popupParam){
-	return window.showModalDialog("/html/ba910.html", popupParam, "dialogWidth:585px; dialogHeight:470px; center=1; status:0; scroll=no; help:no");
+	return window.showModalDialog("/html/ba910_5.html", popupParam, "dialogwidth:585px;dialogheight:470px;center:1;status:0;scroll:no;help:no");
 }
 //거래내역 계정등록
 function naeyeokAcctPopupCo(projPopupParam){
-	return window.showModalDialog("/html/ba990.html", projPopupParam, "dialogWidth:800px; dialogHeight:470px; center=1; status:0; scroll=no; help:no");
+	return window.showModalDialog("/html/ba990_5.html", projPopupParam, "dialogwidth:800px;dialogheight:470px;center:1;status:0;scroll:no;help:no");
 }
 //결의서정보
 function getKyeoluiseoPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba949.html", popupParam, "dialogWidth:500px; dialogHeight:475px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba949_5.html", popupParam, "dialogwidth:500px;dialogheight:475px;center:1;status:0;scroll:no;help:no;");
 }
 //계산서 추가정보
 function gyesanseoChugaPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba989.html", popupParam, "dialogWidth:500px; dialogHeight:220px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba989_5.html", popupParam, "dialogwidth:500px;dialogheight:220px;center:1;status:0;scroll:no;help:no;");
 }
 //세목팝업
 function semokPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba991.html", popupParam, "dialogWidth:325px; dialogHeight:400px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba991_5.html", popupParam, "dialogwidth:325px;dialogheight:400px;center:1;status:0;scroll:no;help:no;");
 }
 //정산조회
 function jeongsanJohoePopupCo(naeyeokPopupParam){
-	return window.showModalDialog("/html/ba992.html", naeyeokPopupParam, "dialogWidth:400px; dialogHeight:450px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba992_5.html", naeyeokPopupParam, "dialogwidth:400px;dialogheight:450px;center:1;status:0;scroll:no;help:no;");
 }
 //원장조회
 function wonjangJohoePopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba993.html", popupParam, "dialogWidth:500px; dialogHeight:500px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba993_5.html", popupParam, "dialogwidth:500px;dialogheight:500px;center:1;status:0;scroll:no;help:no;");
 }
 //프로젝트내역
 function projNaeyeokPopupCo(popupParam){
-	return window.showModalDialog("/html/ba994.html", popupParam, "dialogWidth:850px; dialogHeight:470px; center=1; status:0; scroll=no; help:no");
+	return window.showModalDialog("/html/ba994_5.html", popupParam, "dialogwidth:850px;dialogheight:470px;center:1;status:0;scroll:no;help:no");
 }
 //프로젝트 계정내역
 function projAcctNaeyeokPopupCo(popupParam){
-	return window.showModalDialog("/html/ba995.html", popupParam, "dialogWidth:850px; dialogHeight:470px; center=1; status:0; scroll=no; help:no");
+	return window.showModalDialog("/html/ba995_5.html", popupParam, "dialogwidth:850px;dialogheight:470px;center:1;status:0;scroll:no;help:no");
 }
 //발주예정수량 저장
 function baljuYejeongSavePopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba751.html", popupParam, "dialogWidth:500px; dialogHeight:220px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba751_5.html", popupParam, "dialogwidth:500px;dialogheight:220px;center:1;status:0;scroll:no;help:no;");
 }
 //발주예정 data
 function baljuYejeongDataPopupCo(projPopupParam){
-	return window.showModalDialog("/html/ba752.html", projPopupParam, "dialogWidth:585px; dialogHeight:470px; center=1; status:0; scroll=no; help:no");
+	return window.showModalDialog("/html/ba752_5.html", projPopupParam, "dialogwidth:585px;dialogheight:470px;center:1;status:0;scroll:no;help:no");
 }
 //매입내역
 function maeipNaeyeokPopupCo(popupParam){
-	return window.showModalDialog("/html/ba753.html", popupParam, "dialogWidth:370px; dialogHeight:470px; center=1; status:0; scroll=no; help:no");
+	return window.showModalDialog("/html/ba753_5.html", popupParam, "dialogwidth:370px;dialogheight:470px;center:1;status:0;scroll:no;help:no");
 }
 //외화 매출환입/매입환출 거래
 function oehwaHwanchulipPopupCo(oehwaPopupParam){
-	return window.showModalDialog("/html/ba754.html", oehwaPopupParam, "dialogWidth:800px; dialogHeight:470px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba754_5.html", oehwaPopupParam, "dialogwidth:800px;dialogheight:470px;center:1;status:0;scroll:no;help:no;");
 }
 //매입등록팝업
 function maeipRegPopupCo(popupParam){
-	return window.showModalDialog("/html/ba755.html", popupParam, "dialogWidth:500px; dialogHeight:400px; center=1; status:0; scroll=no; help:no;");
+	return window.showModalDialog("/html/ba755_5.html", popupParam, "dialogwidth:500px;dialogheight:400px;center:1;status:0;scroll:no;help:no;");
 }
 //구분값 팝업
 function gubunPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba756.html", popupParam, "dialogWidth:250px; dialogHeight:120px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba756_5.html", popupParam, "dialogwidth:250px;dialogheight:120px;center:1;status:0;scroll:no;help:no;");
 }
 //매출추정
 function maechulChujeongPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba758.html", popupParam, "dialogWidth:950px; dialogHeight:280px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba758_5.html", popupParam, "dialogwidth:950px;dialogheight:280px;center:1;status:0;scroll:no;help:no;");
 }
 //법인세정보 입력
 function beopinseInfoPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba759.html", popupParam, "dialogWidth:250px; dialogHeight:140px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba759_5.html", popupParam, "dialogwidth:250px;dialogheight:140px;center:1;status:0;scroll:no;help:no;");
 }
 //종전결의서조회
 function jongjeonKyeoluiseoPopupCo(popupParam){
-	return winObj = window.showModalDialog("/html/ba761.html", popupParam, "dialogWidth:950px; dialogHeight:600px; center=1; status:0; scroll=no; help:no;");
+	return winObj = window.showModalDialog("/html/ba761_5.html", popupParam, "dialogwidth:950px;dialogheight:600px;center:1;status:0;scroll:no;help:no;");
 }
 
 // 코드와 이름을 멤버로 갖는 객체를 생성하는 함수-- return객체 생성자함수
@@ -1022,10 +1046,10 @@ function winPopupCo(p1, p2, p3, p4, p5,p6,p7,p8,p9){
 	if(typeof(p3)=='undefined') p3 ="";
 	if(typeof(p4)=='undefined') p4 ="";
 	if(typeof(p5)=='undefined') p5 ="";
-	
+
 	var urlParams = "", screenParams = "";
 	var popupParams  = new popupParamsCo(p1, p2, p3, p4, p5,p6,p7,p8,p9);
-	
+
 	//거래처1(p1:팝업구분, p2:거래처구분(1), p3:매입매출처구분)   
 	//계좌   (p1:팝업구분, p2:거래처구분(2), p3:현금예금등 구분 , p4:외화구분 )   
 	//카드   (p1:팝업구분, p2:거래처구분(3), p3:지출,매출용구분)   
@@ -1033,8 +1057,8 @@ function winPopupCo(p1, p2, p3, p4, p5,p6,p7,p8,p9){
 	//사원   (p1:팝업구분, p2:거래처구분(5), p3:재직,퇴사구분)   
 	//부서   (p1:팝업구분, p2:거래처구분(6))   
 	if(p1=="10"){		
-		urlParams = "/html/ba932.html";
-		screenParams = "dialogWidth:400px; dialogHeight:550px;center=1; status:0; scroll=no; help:no;  resizable=yes; ";
+		urlParams = "/html/ba932_5.html";
+		screenParams = "dialogwidth:415px;dialogheight:500px;center:1;status:0;scroll:no;help:no;resizable:yes;";
 	}
 	return window.showModalDialog(urlParams, popupParams, screenParams);
 }
@@ -1105,27 +1129,27 @@ function setFileOnDataSetCo(code, fileControl, dataSet){
 		fileControl.Value = "";
 		fileControl.Open();
 		if(isNullCo(fileControl.Value)) return;
-		
+
 		var strExt = fileControl.value.substring(fileControl.value.lastIndexOf(".")+1);
 		if((strExt=="tif")||(strExt=="TIF")){
 			alert(" tif 파일은 지원하지 않습니다. \n\n 다른 이미지파일을 선택해주세요. ");
 			return;
 		}	
 		var strFile = fileControl.value.substring(fileControl.value.lastIndexOf("\\")+1);
-		dataSet.NameString(dataSet.RowPosition,"url_str") = strFile;
-		dataSet.NameValue(dataSet.RowPosition,"file_value") = fileControl.value;
+		dataSet.NameString(dataSet.RowPosition,"url_str").val = strFile;
+		dataSet.NameValue(dataSet.RowPosition,"file_value").val = fileControl.value;
 	//삭제
     }else if(code==4){
-		dataSet.NameString(dataSet.RowPosition,"url_str") = "";
-		dataSet.NameValue(dataSet.RowPosition,"file_value") = "";
+		dataSet.NameString(dataSet.RowPosition,"url_str").val = "";
+		dataSet.NameValue(dataSet.RowPosition,"file_value").val = "";
 	}	
 }
 
 //첨부파일 내용 보기(다운로드)
 function showFileCo(inDateLog,dataSet){
-	var mainSeq = dataSet.NameValue(dataSet.RowPosition,"kyeoluiseo_seq");
-	var detlSeq = dataSet.NameValue(dataSet.RowPosition,"kyeoluiseo_detl_seq");
-	var fName = dataSet.NameValue(dataSet.RowPosition,"url_str");
+	var mainSeq = dataSet.NameValue(dataSet.RowPosition,"kyeoluiseo_seq").val;
+	var detlSeq = dataSet.NameValue(dataSet.RowPosition,"kyeoluiseo_detl_seq").val;
+	var fName = dataSet.NameValue(dataSet.RowPosition,"url_str").val;
 	var theUrl = "/files/kyeol/"+commonWpId+"/"+inDateLog.substring(0,4)+"/"+mainSeq+"/"+detlSeq+"/"+fName;
 	var x = (screen.availWidth - 800)/2; 
 	var y = (screen.availHeight - 600)/2;
@@ -1180,13 +1204,13 @@ function allClntPopupCo(dataSet,sCls,uCdId,nameId){
 		var winObj = clntPopupCo("");
 		if(typeof(winObj)=="object"){
 			if(isNotNullCo(dataSet)){
-				if     (sCls=='1') dataSet.NameValue(dataSet.RowPosition,"selected_bungae_seqs") = "";
+				if     (sCls=='1') dataSet.NameValue(dataSet.RowPosition,"selected_bungae_seqs").val = "";
 				else if(sCls=='2'){
-					dataSet.NameValue(dataSet.RowPosition,"dr_selected_bungae_seqs") = "";
-					dataSet.NameValue(dataSet.RowPosition,"cr_selected_bungae_seqs") = "";
+					dataSet.NameValue(dataSet.RowPosition,"dr_selected_bungae_seqs").val = "";
+					dataSet.NameValue(dataSet.RowPosition,"cr_selected_bungae_seqs").val = "";
 				}
-				else if(sCls=='d') dataSet.NameValue(dataSet.RowPosition,"dr_selected_bungae_seqs") = "";
-				else if(sCls=='c') dataSet.NameValue(dataSet.RowPosition,"cr_selected_bungae_seqs") = "";
+				else if(sCls=='d') dataSet.NameValue(dataSet.RowPosition,"dr_selected_bungae_seqs").val = "";
+				else if(sCls=='c') dataSet.NameValue(dataSet.RowPosition,"cr_selected_bungae_seqs").val = "";
 			}
 			if(isNotNullCo(uCdId)){
 				uCdId.value  = winObj.code;
@@ -1215,9 +1239,9 @@ function checkAmtCo(a, b, c){
 //메뉴사용구분 - 특정 화면을 사용할 권한이 있는 지 check
 function getMenuUseClsCo(menuId){
     DataSetBaStr.ClearData();
-    tr_menu_r.Parameters = "jobId=JobBaSelect2,daoId=getMenuUseCls:userId="+DataSetBaCommon.NameValue(1,"user_id")+":menuId="+menuId;
+    tr_menu_r.Parameters = "jobId=JobBaSelect2,daoId=getMenuUseCls:userId="+DataSetBaCommon.NameValue(1,"user_id").val+":menuId="+menuId;
     tr_menu_r.post();
-    var rtnStr = DataSetBaStr.NameValue(1,"name");
+    var rtnStr = DataSetBaStr.NameValue(1,"name").val;
     DataSetBaStr.ClearData();
     return rtnStr;
 }
