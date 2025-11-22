@@ -9,47 +9,21 @@ var duplicationCode = "이미 등록 되어 있습니다.";
 var gridDataSetNm =""; 		//grid 초기값셋팅을 위한 데이터셋받기
 //window.onunload = exitCo; //강제창닫기(x, alt+f4) 이벤트 발생시 로그아웃 함수 호출, 중복로그인제거
 
-//############################## DataSetBaControl 관련 #############################
-	loadDataSetBaControl();
-	getControlDataSetCo();
-
-// 컨트롤 DataSet(DataSetBaControl) 로드
-function loadDataSetBaControl() {
-	document.write("<object id=DataSetBaControl classid=clsid:3267EA0D-B5D8-11D2-A4F9-00608CEBEE49 ></object>");	
-	document.write("<Object id=tr_bacontrol classid=clsid:0A2233AD-E771-11D2-973D-00104B15E56F >");   
-	document.write("	<param name=KeyName	 value=toinb_dataid4>");
-	document.write("	<param name=KeyValue value=JSP(O:DataSetBaControl=DataSetBaControl)>");     
-	document.write("	<param name=Action	 value=/servlet/GateServlet>");                     
-	document.write("    <param name=Protocol value=1>");                                              
-	document.write("</object>");                                                                          
-	document.write("<object id=tr_bacontrol_in classid=clsid:0A2233AD-E771-11D2-973D-00104B15E56F >");   
-	document.write("	<param name=KeyName	   value=toinb_dataid4>");
-	document.write("	<param name=KeyValue   value=JSP(I:DataSetBaControl=DataSetBaControl)>");     
-	document.write("	<param name=Action	   value=/servlet/GateServlet>");                     
-	document.write("    <param name=Protocol   value=1>");                                              
-	document.write("</object>");                                                                          
-}
-
-// 화면별 컨트롤별 DataSet(DataSetBaControl) 조회
-function getControlDataSetCo(){
-	tr_bacontrol.Parameters = "jobId=JobBaSelect,daoId=getControlList:hwamyeonId="+getHwamyeonIdCo().toLowerCase();
-	tr_bacontrol.post();
-}
 // 컨트롤 초기값 설정
 // 01:텍스트 02:라디오 03:check_box 04:select_box 51:EmEdit  52:gauce라디오  53:guace체크  54:luxeCombo 59:grid
 // 사용예) setInitControlCo(0) 포커스없음 -- 주로 화면 onload시 컨트롤 초기값 설정에 사용
 //		   setInitControlCo(2) 2번째 컨트롤에 포커스 -- 주로 AddRow시 컨트롤 초기값 설정에 사용
 function setInitControlCo(focusField){
 	for(var i=1; i<=DataSetBaControl.CountRow; i++){
-		var controlCls = DataSetBaControl.NameValue(i,"ctrl_cls");
-		var inputOrd   = DataSetBaControl.NameValue(i,"input_ord");
+		var controlCls = DataSetBaControl.NameValue(i,"ctrl_cls").val;
+		var inputOrd   = DataSetBaControl.NameValue(i,"input_ord").val;
 		//focusField값이 1이상이면 입력순서도 1이상 이어야만 처리
 		//focusField값이 0이하이면 입력순서도 0이하 인것만 처리
 		if(((focusField<=0)&&(inputOrd>0)&&(inputOrd<100))||((focusField>0)&&(inputOrd<=0))) continue;
-						
+
 		if(controlCls != "59"){	   // grid가 아닌 것
-			var controlId = DataSetBaControl.NameValue(i,"ctrl_id");	
-			var chokiGap  = DataSetBaControl.NameValue(i,"choki_gap");
+			var controlId = DataSetBaControl.NameValue(i,"ctrl_id").val;	
+			var chokiGap  = DataSetBaControl.NameValue(i,"choki_gap").val;
 			var objColumn = eval(controlId);
 
 			if(i==focusField){ 
@@ -86,7 +60,7 @@ function setInitButtonCo(){
 function saveUserControlValue(taskCls){
 	var msg = " 현재 화면에 있는 값들이 기본값으로 설정됩니다. \n\n 설정하시겠습니까? ";
 	if(taskCls=="setHwamyeonSettingDefault") msg = " 설정된 화면 기본값을 초기화하시겠습니까? ";
-	
+
 	if(confirm(msg)){
 		//1.사용자 컨트롤을 DataSetBaControl에 저장
 		saveTempUserControlValue();
@@ -100,37 +74,37 @@ function saveUserControlValue(taskCls){
 //이후부터는 입력 mode에서 user별 초기값이 반영된다.
 function saveTempUserControlValue(){
 	for(var i=1; i<=DataSetBaControl.CountRow; i++){
-		var controlCls	= DataSetBaControl.NameValue(i,"ctrl_cls");
-		
+		var controlCls	= DataSetBaControl.NameValue(i,"ctrl_cls").val;
+
 		//컨트롤중 grid가 아닌 것
 		var controlId="";
 		var objColumn="";
 
 		if(controlCls=="59"){
-			controlId	= DataSetBaControl.NameValue(i,"ds_field_id");	
+			controlId	= DataSetBaControl.NameValue(i,"ds_field_id").val;	
 		}else{
-			controlId	= DataSetBaControl.NameValue(i,"ctrl_id");	
+			controlId	= DataSetBaControl.NameValue(i,"ctrl_id").val;	
 			objColumn   = eval(controlId);
 		}
 		switch(controlCls){
 			case "01":  //Text(Html)
-				DataSetBaControl.NameValue(i,"choki_gap") = objColumn.value;
+				DataSetBaControl.NameValue(i,"choki_gap").val = objColumn.value;
 				break;
 			case "03":  //checkbox
-				DataSetBaControl.NameValue(i,"choki_gap") = String(objColumn.checked);
+				DataSetBaControl.NameValue(i,"choki_gap").val = String(objColumn.checked);
 				break;
 			case "51":   //EmEdit
-				DataSetBaControl.NameValue(i,"choki_gap") = objColumn.Text;
+				DataSetBaControl.NameValue(i,"choki_gap").val = objColumn.Text;
 				break;
 			case "54":	 //luxecombo
-				DataSetBaControl.NameValue(i,"choki_gap") = objColumn.Index;
+				DataSetBaControl.NameValue(i,"choki_gap").val = objColumn.Index;
 				break;
 			case "52":   //가우스 radio
-				DataSetBaControl.NameValue(i,"choki_gap") = objColumn.CodeValue;
+				DataSetBaControl.NameValue(i,"choki_gap").val = objColumn.CodeValue;
 				break;
 			case "59":  //grid
 				if(gridDataSetNm.CountRow>0)
-					DataSetBaControl.NameValue(i,"choki_gap") = gridDataSetNm.NameValue(gridDataSetNm.RowPosition,controlId)+"";
+					DataSetBaControl.NameValue(i,"choki_gap").val = gridDataSetNm.NameValue(gridDataSetNm.RowPosition,controlId).val+"";
 				break;
 		}
 	}//for-end
@@ -146,10 +120,10 @@ function gridChogiDataSetCo(dataSetNm){
 // AddRow 직후 초기값 설정   사용예) setInitControlGridCo(dataSetNm)
 function setInitControlGridCo(dataSetNm){
 	for(var i=1; i<=DataSetBaControl.CountRow; i++){
-		var controlCls	= DataSetBaControl.NameValue(i,"ctrl_cls");
+		var controlCls	= DataSetBaControl.NameValue(i,"ctrl_cls").val;
 		//컨트롤 구분이 그리드(59)면서 초기값이 있는 것						
-		if(controlCls=="59" && DataSetBaControl.NameValue(i,"choki_gap")!=""){
-			dataSetNm.NameValue(dataSetNm.RowPosition,DataSetBaControl.NameValue(i,"ds_field_id")) = DataSetBaControl.NameValue(i,"choki_gap");
+		if(controlCls=="59" && DataSetBaControl.NameValue(i,"choki_gap").val!=""){
+			dataSetNm.NameValue(dataSetNm.RowPosition,DataSetBaControl.NameValue(i,"ds_field_id").val).val = DataSetBaControl.NameValue(i,"choki_gap").val;
 		}
 	}
 }
@@ -158,25 +132,25 @@ function setInitControlGridCo(dataSetNm){
 // 호출예)pilsuColorChange()
 function pilsuColorChangeCo(){
 	var ctrlCls, insertStatus, ctrlId, objColumn;
-	
+
 	for(var i=1; i<=DataSetBaControl.CountRow; i++){
-		ctrlCls = DataSetBaControl.NameValue(i,"ctrl_cls");	
+		ctrlCls = DataSetBaControl.NameValue(i,"ctrl_cls").val;	
 		// grid가 아닌 컨트롤이 작업대상		
 		if(ctrlCls != "59"){
-			insertStatus = DataSetBaControl.NameValue(i,"insert_status");
-			pilsuCls     = DataSetBaControl.NameValue(i,"pilsu_cls");
-			ctrlId       = DataSetBaControl.NameValue(i,"ctrl_id");
+			insertStatus = DataSetBaControl.NameValue(i,"insert_status").val;
+			pilsuCls     = DataSetBaControl.NameValue(i,"pilsu_cls").val;
+			ctrlId       = DataSetBaControl.NameValue(i,"ctrl_id").val;
 			objColumn    = eval(ctrlId);
-			
+
 			//필수입력 색상설정(라디오제외)
 			if(pilsuCls=="1" && ctrlCls!="52") objColumn.style.backgroundColor = pilsuColor;
-			
+
 			//입력모드 시 disable 시켜야 할 것들에 대한 disable 작업
 			if(insertStatus=="0"){
 				if(ctrlCls=="51") objColumn.ReadOnlyBackColor = disableColor;
 				else if(ctrlCls=="54") objColumn.ReadOnlyBackColor = disableColor;
 				else if(ctrlCls != "52") objColumn.style.backgroundColor = disableColor;
-				
+
 				if(ctrlCls=="52"||ctrlCls=="54") objColumn.Enable   = false;  //가우스radio와 가우스luxecombo
 				else                             objColumn.readOnly = true;   //기타 컨트롤                               
 			}
@@ -194,17 +168,17 @@ function pilsuColorChangeCo(){
 ----------------------------------------------------------------------------------*/
 function setControlStatusCo(status){
 	var ctrlCls, insertStatus, ctrlId, objColumn, inputOrd;
-	
+
 	for(var i=1; i<=DataSetBaControl.CountRow; i++){
-		ctrlCls = DataSetBaControl.NameValue(i,"ctrl_cls");	
-		inputOrd = DataSetBaControl.NameValue(i,"input_ord");
+		ctrlCls = DataSetBaControl.NameValue(i,"ctrl_cls").val;	
+		inputOrd = DataSetBaControl.NameValue(i,"input_ord").val;
 		// grid가 아닌 컨트롤이 작업대상		
 		if(ctrlCls != "59"){
-			insertStatus = DataSetBaControl.NameValue(i,"insert_status");
-			pilsuCls     = DataSetBaControl.NameValue(i,"pilsu_cls")
-			ctrlId       = DataSetBaControl.NameValue(i,"ctrl_id");
+			insertStatus = DataSetBaControl.NameValue(i,"insert_status").val;
+			pilsuCls     = DataSetBaControl.NameValue(i,"pilsu_cls").val
+			ctrlId       = DataSetBaControl.NameValue(i,"ctrl_id").val;
 			objColumn    = eval(ctrlId);
-			
+
 			//입력모드에서 disable 아닌것들만 작업대상
 			//입력모드에서 disable인 것들은 처음부터 끝까지 disable 
 			if((insertStatus != "0")&&(inputOrd>0)){
@@ -252,18 +226,18 @@ function checkNotNullCo(dataSetId){
 		//입력 또는 수정 mode인 행만 검사
 		if(dataSetId.SysStatus(i)==1 || dataSetId.SysStatus(i)==3){
 			for(var j=1; j<=DataSetBaControl.CountRow; j++){
-				 if(DataSetBaControl.NameValue(j,"ctrl_cls") != "59"){
-					columnValue = dataSetId.NameValue(i,DataSetBaControl.NameValue(j,"ds_field_id"));
-					notNullYn   = DataSetBaControl.NameValue(j,"pilsu_cls");
-					
+				 if(DataSetBaControl.NameValue(j,"ctrl_cls").val != "59"){
+					columnValue = dataSetId.NameValue(i,DataSetBaControl.NameValue(j,"ds_field_id").val).val;
+					notNullYn   = DataSetBaControl.NameValue(j,"pilsu_cls").val;
+
 					if(notNullYn=="1" && (columnValue=="" || columnValue==0)){
 						if(columnValue==""){
-							if(k=="1")controlName = DataSetBaControl.NameValue(j,"ctrl_id");//첫컨트롤명만 저장후 포커스 반영
-							errorCnt.unshift(DataSetBaControl.NameValue(j,"ctrl_nm"));
+							if(k=="1")controlName = DataSetBaControl.NameValue(j,"ctrl_id").val;//첫컨트롤명만 저장후 포커스 반영
+							errorCnt.unshift(DataSetBaControl.NameValue(j,"ctrl_nm").val);
 							k++;
-						}else if(columnValue==0 && DataSetBaControl.NameValue(j,"ctrl_cls") != "52"){
-							if(k=="1")controlName = DataSetBaControl.NameValue(j,"ctrl_id");//첫컨트롤명만 저장후 포커스 반영
-							errorCnt.unshift(DataSetBaControl.NameValue(j,"ctrl_nm"));
+						}else if(columnValue==0 && DataSetBaControl.NameValue(j,"ctrl_cls").val != "52"){
+							if(k=="1")controlName = DataSetBaControl.NameValue(j,"ctrl_id").val;//첫컨트롤명만 저장후 포커스 반영
+							errorCnt.unshift(DataSetBaControl.NameValue(j,"ctrl_nm").val);
 							k++;
 						}
 					}
@@ -294,13 +268,13 @@ function checkNotNullGridCo(dataSetId){
 		//입력 또는 수정 mode인 행만 검사
 		if(dataSetId.RowStatus(i)==1 || dataSetId.RowStatus(i)==3){
 			for(var j=1; j<=DataSetBaControl.CountRow; j++){	
-				if(DataSetBaControl.NameValue(j,"ctrl_cls") == "59"){
-					columnValue = dataSetId.NameValue(i,DataSetBaControl.NameValue(j,"ds_field_id"));
-					notNullYn   = DataSetBaControl.NameValue(j,"pilsu_cls");
-					
+				if(DataSetBaControl.NameValue(j,"ctrl_cls").val == "59"){
+					columnValue = dataSetId.NameValue(i,DataSetBaControl.NameValue(j,"ds_field_id").val).val;
+					notNullYn   = DataSetBaControl.NameValue(j,"pilsu_cls").val;
+
 					if(notNullYn=="1" && (columnValue=="" || columnValue==0)){
-						if(k=="1")controlName = DataSetBaControl.NameValue(j,"ds_field_id");//첫컨트롤명만 저장후 포커스 반영
-						errorCnt.unshift(DataSetBaControl.NameValue(j,"ctrl_nm"));
+						if(k=="1")controlName = DataSetBaControl.NameValue(j,"ds_field_id").val;//첫컨트롤명만 저장후 포커스 반영
+						errorCnt.unshift(DataSetBaControl.NameValue(j,"ctrl_nm").val);
 						k++;
 					}
 				}
@@ -338,7 +312,7 @@ function nextFieldNm(obj,row) {
 	var objName = obj.id;
 	var posRow = DataSetBaControl.NameValueRow("ctrl_id",objName);
 	posRow = eval(posRow)+eval(row);
-	var controlId = DataSetBaControl.NameValue(posRow,"ctrl_id");
+	var controlId = DataSetBaControl.NameValue(posRow,"ctrl_id").val;
 	return eval(controlId);
 }
 
@@ -349,12 +323,6 @@ function nextFieldNm(obj,row) {
 function canAddRowCo(DataSet){
 	for(var i=1; i<=DataSet.CountRow; i++) if(DataSet.SysStatus(i)== 1) return false;
 	return true;
-}
-// 현재 화면 id가져오기 -- control DataSet 가져올때 이용
-function getHwamyeonIdCo(){
-		var startIndex = location.pathname.lastIndexOf("/")+1;
-		var endIndex = location.pathname.lastIndexOf(".");
-		return location.pathname.substring(startIndex,endIndex);
 }
 // 증빙종류 조회
 function getJeungbingKndCo(){
@@ -376,20 +344,20 @@ function userCodeCheckCo(dataSetNm,trName,nameField,dataSetNmChk,gubunName,userC
 	dataSetNameChkObj = eval(dataSetNmChk);
 	trNameObj         = eval(trName);
 	userCodeVal       = userCodeObj.value;
-	
+
 	//값이 없을때에 에러 나오지 않게
 	if(userCodeObj.value == ""){
-		dataSetNameObj.NameValue(dataSetNameObj.RowPosition, nameField) = "";
+		dataSetNameObj.NameValue(dataSetNameObj.RowPosition, nameField).val = "";
 		return true;
 	}else if(userCodeObj.value != ""){		
 		dataSetCallCo(dataSetNmChk,trNameObj,gubunName,userCodeVal,cls);
 		if(dataSetNameChkObj.CountRow==1){
 			/* 유효성 체크후 true일때 현재 dataset에 받아온 값을 셋팅 */
-			dataSetNameObj.NameValue(dataSetNameObj.RowPosition, nameField) = dataSetNameChkObj.NameValue(1,"name");
+			dataSetNameObj.NameValue(dataSetNameObj.RowPosition, nameField).val = dataSetNameChkObj.NameValue(1,"name").val;
 			return true;
 		}else{
 			errorMsgToTitleBarCo(errMsg);
-			dataSetNameObj.NameValue(dataSetNameObj.RowPosition, nameField) = "";
+			dataSetNameObj.NameValue(dataSetNameObj.RowPosition, nameField).val = "";
 			initFocusCo(userCodeObj);
 			return false;
 		}
@@ -399,16 +367,16 @@ function userCodeCheckCo(dataSetNm,trName,nameField,dataSetNmChk,gubunName,userC
 
 // 그리드 코드의 유효성 체크 
 // 호출예)userCodeGridCheckCo('DataSetBa502RU','tr_sawon_cd_check','biz_damdang_nm','DataSetBaSawonCode', 'b02SawonNm', this,'popup','에러')
-function checkDataSetGridCode(dataSetNm,row,columnNm,chkDataSetNm,chkColumnNm,changeColumnNm,chkColumnValue,popup,cls,trNameObj,gubunName) {
+function checkDataSetGridCode(dataSetNm,row,columnNm,chkDataSetNm,chkColumnNm,changeColumnNm,chkColumnValue,popup,cls,trNameObj,gubunName){
 	dataSetNameChkObj = eval(chkDataSetNm);
 	if(chkColumnValue==""){
-		dataSetNm.NameValue(row, columnNm) = "";
+		dataSetNm.NameValue(row, columnNm).val = "";
 		return true;		
 	}else if(chkColumnValue != ""){	
 		dataSetCallCo(chkDataSetNm, trNameObj, gubunName, chkColumnValue,cls);
-	   
+
 	   if(dataSetNameChkObj.CountRow==1){
-			dataSetNm.NameValue(row, columnNm) = dataSetNameChkObj.NameValue(1,"name");
+			dataSetNm.NameValue(row, columnNm).val = dataSetNameChkObj.NameValue(1,"name").val;
 			return true;
 		}else{
 			if(popup==""){
@@ -432,36 +400,36 @@ function checkDataSetGridCode(dataSetNm,row,columnNm,chkDataSetNm,chkColumnNm,ch
 function checkJeokyoCodeCo(dataSetNm,nameField,popup,userCodeObj,georaeCls,upjongCls,ipchulCls,oehwaCls,drcrCls,uAcctCd){
 	dataSetNameObj = eval(dataSetNm);
 	userCodeVal    = userCodeObj.value;
-	
+
 	if(dataSetNameObj.sysStatus(dataSetNameObj.RowPosition)!=1) return;
 	if(userCodeObj.value == ""){
-		dataSetNameObj.NameValue(dataSetNameObj.RowPosition, nameField)            = "";
-		dataSetNameObj.NameValue(dataSetNameObj.RowPosition, "georae_jeokyo_cd")   = "";
+		dataSetNameObj.NameValue(dataSetNameObj.RowPosition, nameField).val            = "";
+		dataSetNameObj.NameValue(dataSetNameObj.RowPosition, "georae_jeokyo_cd").val   = "";
 		return;
 	}else if(userCodeObj.value != ""){		//값이 없을때에 에러메세지 나오지 않게
 		dataSetCallJeokyoCo(userCodeVal,georaeCls,upjongCls,ipchulCls,oehwaCls,drcrCls,uAcctCd);
 		if(DataSetBa540R.CountRow==1){
 			/* 유효성 체크후 true일때 현재 dataset에 받아온 값을 셋팅 */
-			var code          = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "u_georae_jeokyo_cd");
-			var name          = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "georae_naeyeok");
-			var pcode         = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "georae_jeokyo_cd");
-			var uDrAcctCd     = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "u_dr_acct_cd");
-			var uCrAcctCd     = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "u_cr_acct_cd");
-			var drAcctNm      = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "dr_acct_nm");
-			var crAcctNm      = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "cr_acct_nm");
-			var drBalJeongCls = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "dr_bal_jeong_cls");
-			var crBalJeongCls = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "cr_bal_jeong_cls");
-			var juGeoraeCls   = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "ju_georae_cls");
+			var code          = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "u_georae_jeokyo_cd").val;
+			var name          = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "georae_naeyeok").val;
+			var pcode         = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "georae_jeokyo_cd").val;
+			var uDrAcctCd     = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "u_dr_acct_cd").val;
+			var uCrAcctCd     = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "u_cr_acct_cd").val;
+			var drAcctNm      = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "dr_acct_nm").val;
+			var crAcctNm      = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "cr_acct_nm").val;
+			var drBalJeongCls = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "dr_bal_jeong_cls").val;
+			var crBalJeongCls = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "cr_bal_jeong_cls").val;
+			var juGeoraeCls   = DataSetBa540R.NameValue(DataSetBa540R.RowPosition, "ju_georae_cls").val;
 			/* 거래내역을 현재 데이터셋에 뿌려주기 */
-			dataSetNameObj.NameValue(dataSetNameObj.RowPosition, "u_georae_jeokyo_cd") = code;
-			dataSetNameObj.NameValue(dataSetNameObj.RowPosition, "georae_jeokyo_cd")   = pcode;
-			dataSetNameObj.NameValue(dataSetNameObj.RowPosition, nameField) = name;
-			
+			dataSetNameObj.NameValue(dataSetNameObj.RowPosition, "u_georae_jeokyo_cd").val = code;
+			dataSetNameObj.NameValue(dataSetNameObj.RowPosition, "georae_jeokyo_cd").val   = pcode;
+			dataSetNameObj.NameValue(dataSetNameObj.RowPosition, nameField).val = name;
+
 			var rtnObj  = new JeokyoRtnObjCo(code, name, pcode, uDrAcctCd, uCrAcctCd, drAcctNm, crAcctNm, drBalJeongCls, crBalJeongCls, juGeoraeCls);
 			return rtnObj;
 		}else{
 			errorTextCo("등록되지 않았거나, 현 화면에서 사용할 수 없는 코드입니다");
-			dataSetNameObj.NameValue(dataSetNameObj.RowPosition, nameField) = "";
+			dataSetNameObj.NameValue(dataSetNameObj.RowPosition, nameField).val = "";
 			initFocusCo(userCodeObj);
 			return false;
 		}
@@ -486,31 +454,31 @@ function dataSetCallJeokyoCo(searchWord,georaeCls,upjongCls,ipchulCls,oehwaCls,d
 // 계좌정보--통화코드, 외화계좌여부
 function checkGyejwaCodeCo (georaeDataSet, uClntCd, clntNm, txtUClntCd){
 	var userCode    = txtUClntCd.value;   //사용자코드값
-	
+
 	if(userCode == ""){
-		georaeDataSet.NameValue(georaeDataSet.RowPosition, uClntCd) = "";
-		georaeDataSet.NameValue(georaeDataSet.RowPosition, clntNm)  = "";
+		georaeDataSet.NameValue(georaeDataSet.RowPosition, uClntCd).val = "";
+		georaeDataSet.NameValue(georaeDataSet.RowPosition, clntNm).val  = "";
 		return;
 	}else if(userCode != ""){		       
 		var parameters ="jobId=JobBaSelect2, daoId=getClntPopup:clntCls=2:oehwaGyejwaCls=%";
 		parameters +=":searchGubun=code:searchWord="+userCode;
 		tr_gyejwa.Parameters = parameters;
 		tr_gyejwa.post();
-		
+
 		if(DataSetBaPopupClnt.CountRow==1){
-			var code           = DataSetBaPopupClnt.NameValue(DataSetBaPopupClnt.RowPosition, "code");
-			var uCode          = DataSetBaPopupClnt.NameValue(DataSetBaPopupClnt.RowPosition, "u_code");
-			var name           = DataSetBaPopupClnt.NameValue(DataSetBaPopupClnt.RowPosition, "name");
-			var uTonghwaCd     = DataSetBaPopupClnt.NameValue(DataSetBaPopupClnt.RowPosition, "u_Tonghwa_cd");
-			var oehwaGyejwaCls = DataSetBaPopupClnt.NameValue(DataSetBaPopupClnt.RowPosition, "oehwa_gyejwa_cls");
-			georaeDataSet.NameValue(georaeDataSet.RowPosition, uClntCd) = uCode;
-			georaeDataSet.NameValue(georaeDataSet.RowPosition, clntNm)  = name;
-			
+			var code           = DataSetBaPopupClnt.NameValue(DataSetBaPopupClnt.RowPosition, "code").val;
+			var uCode          = DataSetBaPopupClnt.NameValue(DataSetBaPopupClnt.RowPosition, "u_code").val;
+			var name           = DataSetBaPopupClnt.NameValue(DataSetBaPopupClnt.RowPosition, "name").val;
+			var uTonghwaCd     = DataSetBaPopupClnt.NameValue(DataSetBaPopupClnt.RowPosition, "u_Tonghwa_cd").val;
+			var oehwaGyejwaCls = DataSetBaPopupClnt.NameValue(DataSetBaPopupClnt.RowPosition, "oehwa_gyejwa_cls").val;
+			georaeDataSet.NameValue(georaeDataSet.RowPosition, uClntCd).val = uCode;
+			georaeDataSet.NameValue(georaeDataSet.RowPosition, clntNm).val  = name;
+
 			var rtnObj  = new RtnClntObj(code, uCode, name, uTonghwaCd, oehwaGyejwaCls);
 			return rtnObj;
 		}else{
 			errorTextCo(noCode);
-			georaeDataSet.NameValue(georaeDataSet.RowPosition, clntNm) = "";
+			georaeDataSet.NameValue(georaeDataSet.RowPosition, clntNm).val = "";
 			initFocusCo(txtUClntCd);
 		}
 	}
@@ -529,15 +497,15 @@ function getMgtItemInfoCo(uMgtItemCd) {
 	if(isNotNullCo(uMgtItemCd)){
 		tr_mgt_item_r.Parameters="jobId=JobBaSelect2,daoId=getMgtItemList:uMgtItemCd="+uMgtItemCd;
 		tr_mgt_item_r.post();
-		
+
 		if(DataSetBa108RU.CountRow ==0) return;
-		var code   		  = DataSetBa108RU.NameValue(DataSetBa108RU.RowPosition, "u_mgt_item_cd");
-		var name   		  = DataSetBa108RU.NameValue(DataSetBa108RU.RowPosition, "mgt_item_nm");
-		var pcode  		  = DataSetBa108RU.NameValue(DataSetBa108RU.RowPosition, "mgt_item_cd");
-		var mgtItemKndCls = DataSetBa108RU.NameValue(DataSetBa108RU.RowPosition, "mgt_item_knd_cls");
-		var uAcctCd  	  = DataSetBa108RU.NameValue(DataSetBa108RU.RowPosition, "u_acct_cd");
-		var acctCls       = DataSetBa108RU.NameValue(DataSetBa108RU.RowPosition, "acct_cls");
-		
+		var code   		  = DataSetBa108RU.NameValue(DataSetBa108RU.RowPosition, "u_mgt_item_cd").val;
+		var name   		  = DataSetBa108RU.NameValue(DataSetBa108RU.RowPosition, "mgt_item_nm").val;
+		var pcode  		  = DataSetBa108RU.NameValue(DataSetBa108RU.RowPosition, "mgt_item_cd").val;
+		var mgtItemKndCls = DataSetBa108RU.NameValue(DataSetBa108RU.RowPosition, "mgt_item_knd_cls").val;
+		var uAcctCd  	  = DataSetBa108RU.NameValue(DataSetBa108RU.RowPosition, "u_acct_cd").val;
+		var acctCls       = DataSetBa108RU.NameValue(DataSetBa108RU.RowPosition, "acct_cls").val;
+
 		var rtnObj = new MgtItemRtnObjCo(code,name,pcode,mgtItemKndCls,uAcctCd,acctCls);
 		return rtnObj;
 	}
@@ -546,12 +514,12 @@ function getMgtItemInfoCo(uMgtItemCd) {
 //사용자코드를 변경시킬 것인지 경고성 질문
 function wantCodeChangeCo(userCodeObj, dataSet, colId){
 	var orgValue = dataSet.OrgNameValue(dataSet.RowPosition, colId);
-	var nowValue = dataSet.NameValue(dataSet.RowPosition, colId);
+	var nowValue = dataSet.NameValue(dataSet.RowPosition, colId).val;
 	if((dataSet.SysStatus(dataSet.RowPosition)==1)||(orgValue==nowValue)) return true;
 	if(confirm(" 변경전 코드로 등록된 데이터가 있을 경우 \n\n 새로운 코드로 표시됩니다. 변경하시겠습니까? ")){
 		return true;
 	}else{	
-		dataSet.NameValue(dataSet.RowPosition, colId) =  orgValue;
+		dataSet.NameValue(dataSet.RowPosition, colId).val =  orgValue;
 		if     (userCodeObj.tagName=="OBJECT") userCodeObj.Text  = orgValue;
 		else if(userCodeObj.tagName=="INPUT")  userCodeObj.value = orgValue;
 		return false;
@@ -569,7 +537,7 @@ function sortCo(Row,colId,globalColId,dsName,colIds) {
 	var colLen;
 	colName = colIds.split(";");
 	colLen = colName.length-1;
-	
+
 	if (globalColId == colId) {
 		globalColId = '';		
 		dsName.SortExpr = "+"+colId;
@@ -610,12 +578,12 @@ function selectAllHeader(dataset){
 	if(globalChk == ""){
 		globalChk = "T";
 		for(i=1; i<= dataset.CountRow; i++){
-			dataset.NameValue(i, "check_box") = 'T';
+			dataset.NameValue(i, "check_box").val = 'T';
 		}
 	}else{
 		globalChk = "";
 		for(i=1; i<= dataset.CountRow; i++){
-			dataset.NameValue(i, "check_box") = 'F';
+			dataset.NameValue(i, "check_box").val = 'F';
 		}
 	}
 }
@@ -624,22 +592,22 @@ function selectAllHeader2(dataset,colId){
 	if(globalChk == ""){
 		globalChk = "T";
 		for(i=1; i<= dataset.CountRow; i++){
-			dataset.NameValue(i, colId) = 'T';
+			dataset.NameValue(i, colId).val = 'T';
 		}
 	}else{
 		globalChk = "";
 		for(i=1; i<= dataset.CountRow; i++){
-			dataset.NameValue(i, colId) = 'F';
+			dataset.NameValue(i, colId).val = 'F';
 		}
 	}
 }
 //전체선택
 function checkedAllCo(DataSet){
-	for(i=1; i<= DataSet.CountRow; i++) DataSet.NameValue(i, "check_box") = 'T';
+	for(i=1; i<= DataSet.CountRow; i++) DataSet.NameValue(i, "check_box").val = 'T';
 }
 //전체해제
 function uncheckedAllCo(DataSet){
-	for(i=1; i<= DataSet.CountRow; i++) DataSet.NameValue(i, "check_box") = 'F';
+	for(i=1; i<= DataSet.CountRow; i++) DataSet.NameValue(i, "check_box").val = 'F';
 }
 //-------------------------------------------------------------------
 // Grid에서 checkBox가 check된 갯수(row수)
@@ -648,7 +616,7 @@ function getCheckedRowsCo(dataSetId){
 	var checkedRows = 0;
 	//dataSet은 1부터 시작함.
 	for(var i=1; i<=dataSetId.CountRow; i++){
-		if(dataSetId.NameValue(i, "check_box")=="T"){
+		if(dataSetId.NameValue(i, "check_box").val=="T"){
 			checkedRows = checkedRows + 1;
 		}
 	}
@@ -663,8 +631,8 @@ function getCheckedRowsSumCo(dataSetId, columnNm){
 	var checkedRowsSum = 0;
 	//dataSet은 1부터 시작함.
 	for(var i=1; i<=dataSetId.CountRow; i++){
-		if(dataSetId.NameValue(i,"check_box")=="T"){
-			checkedRowsSum = checkedRowsSum + dataSetId.NameValue(i,columnNm);
+		if(dataSetId.NameValue(i,"check_box").val=="T"){
+			checkedRowsSum = checkedRowsSum + dataSetId.NameValue(i,columnNm).val;
 		}
 	}
 	return checkedRowsSum;
@@ -677,8 +645,8 @@ function getCheckedRowsAvgCo(dataSetId, columnNm){
 	var j=0;
 	//dataSet은 1부터 시작함.
 	for(var i=1; i<=dataSetId.CountRow; i++){
-		if(dataSetId.NameValue(i,"check_box")=="T"){
-			checkedRowsSum = checkedRowsSum + dataSetId.NameValue(i,columnNm);
+		if(dataSetId.NameValue(i,"check_box").val=="T"){
+			checkedRowsSum = checkedRowsSum + dataSetId.NameValue(i,columnNm).val;
 			j++;
 		}
 	}
@@ -694,9 +662,9 @@ function getCheckedBungaeSeqs(dataSetId){
 	var bungaeSeqs="";
 	var j = 0;
 	for(var i=1; i<=dataSetId.CountRow; i++){
-		if(dataSetId.NameValue(i,"check_box")=="T"){
-			if(j==0) bungaeSeqs = bungaeSeqs + dataSetId.NameValue(i,"bungae_seq");
-			else     bungaeSeqs = bungaeSeqs + ";" + dataSetId.NameValue(i,"bungae_seq");
+		if(dataSetId.NameValue(i,"check_box").val=="T"){
+			if(j==0) bungaeSeqs = bungaeSeqs + dataSetId.NameValue(i,"bungae_seq").val;
+			else     bungaeSeqs = bungaeSeqs + ";" + dataSetId.NameValue(i,"bungae_seq").val;
 			j++;
 		}
 	}
@@ -717,38 +685,14 @@ function showDataSetCo(dataSetId,dataSetName){
 	for(var i=1;i<=dataSetId.CountRow; i++){
 		dataSetStatus = dataSetStatus +i+"번째행 => jobType:["+dataSetId.RowStatus(i)+"] ";
 		for(var j=1; j<=dataSetId.CountColumn; j++){
-			dataSetStatus = dataSetStatus + dataSetId.ColumnId(j) + ":,["+noValueToStrCo(dataSetId.ColumnValue(i,j))+"]   ";
+			dataSetStatus = dataSetStatus + dataSetId.ColumnID(j) + ":,["+noValueToStrCo(dataSetId.ColumnValue(i,j).val)+"]   ";
 		}
 		dataSetStatus =  dataSetStatus + "\n\n";
 	}
 	alert(dataSetStatus);
 }
-//-------------------------------------------------------------------
-// Luxecombo에서 값 입력후 포커스 이동시 코드값의 유효성체크
-// 예) chkLuxecomboData(obj)  - obj 는 luxccombo명
-//-------------------------------------------------------------------
-function chkLuxecomboData(obj) {
-	if(!searchChkCo(obj)){
-		errorTextCo(noCode);
-		obj.Select;
-		obj.Focus();
-	}
-}
-//-------------------------------------------------------------------
-// Luxecombo에서 값 입력후 search한 후 함수 호출
-// 예) searchChk(obj)  - obj 는 luxccombo명
-//-------------------------------------------------------------------
-function searchChkCo(obj) { 		
-	if(obj.Text=="") return 1;
-	var rtnVal = obj.ShowSearchCol();		
-	if( rtnVal == 0){	// 해당 데이터가 없을 경우 다시 LuxeCombo에 포커스 이동
-		return 0;
-	}
-	if( rtnVal > 1){		// 해당 데이터가 2개 이상일 경우 다시 LuxeCombo에 포커스 이동
-		return 0;
-	}
-	return 1;
-}
+// Luxecombo에서 값 입력후 포커스 이동시 코드값의 유효성체크 -- 문제발생 - 필요없을 듯해서 공란 처리
+function chkLuxecomboData(obj) {}
 //-------------------------------------------------------------------
 // Luxecombo에서 search후 호출할 함수, 데이터 초기화
 // 예) luxecomboInit(obj)  - obj 는 luxccombo명
@@ -762,7 +706,7 @@ function luxecomboInitCo(obj) {
 //방향키 다운으로 Add Row 될때 1개 이상로우 되는걸 막음 
 //datasetNm : 데이터셋명, keyColumn : 컬럼명 클라이언트에서"u_porj_cd"넘져줌
 function addOneRow(datasetNm, keyColumn) {
-	if(datasetNm.NameValue(datasetNm.RowPosition,keyColumn) != ""){
+	if(datasetNm.NameValue(datasetNm.RowPosition,keyColumn).val != ""){
 		datasetNm.AddRow();
 	}
 }
@@ -784,7 +728,7 @@ function fixDoubleCo(doubleNum){
 //-------------------------------------------------------------------
 function getJongjeonAmtCo(oehwaAmt, dataSet){
 	if(isNullCo(oehwaAmt)) oehwaAmt=0;
-	
+
 	//임시 local 변수 
 	var tempOehwaAmt   = oehwaAmt;  //외화
 	var jongjeonAmtSum = 0;         //원화
@@ -795,7 +739,7 @@ function getJongjeonAmtCo(oehwaAmt, dataSet){
 	var selectedBungaeSeqs = getCheckedBungaeSeqs(dataSet);
 	//선택분개번호가 있으면 구분자(;)로 분리해서 배열에 저장	
 	if(isNotNullCo(selectedBungaeSeqs)) bungaeSeqArr = selectedBungaeSeqs.split(";");
-	
+
 	var rowPos; 
 	var oehwaBal;  //외화잔액
 	var bal;       //원화잔액
@@ -803,13 +747,13 @@ function getJongjeonAmtCo(oehwaAmt, dataSet){
 	for(var i = 0; i<bungaeSeqArr.length;i++){
 		//분개번호의 row위치를 찾아 해당 잔액가져오기
 		rowPos    = dataSet.NameValueRow("bungae_seq", bungaeSeqArr[i]);
-		oehwaBal  = dataSet.NameValue   (rowPos,       "ju_oehwa_bal");
-		bal       = dataSet.NameValue   (rowPos,       "bal");
+		oehwaBal  = dataSet.NameValue   (rowPos,       "ju_oehwa_bal").val;
+		bal       = dataSet.NameValue   (rowPos,       "bal").val;
 		//정산대상 분개의 외화잔액이 정산할 외화금액 보다 크거나 같으면 ==> 종전원화금액 = 원화잔액 * 정산할외화금액 / 외화잔액
 		if(tempOehwaAmt<=oehwaBal){
 			jongjeonAmtSum = jongjeonAmtSum + jeolsaCo(bal * tempOehwaAmt/oehwaBal);
 			return jeolsaCo(jongjeonAmtSum);
-			
+
 		//정산대상 분개의 외화잔액이 정산할 외화금액 보다 작으면  종전원화금액 = 원화잔액
 		}else{
 			jongjeonAmtSum = jongjeonAmtSum + bal;
@@ -823,14 +767,14 @@ function getJongjeonAmtCo(oehwaAmt, dataSet){
 			//잔액내역에서 분개번호를 하나씩 꺼내 확인 : 이미 정산된 선택분개번호면 skip
 			//외부 for로 continue하기 위해 isSelected변수 도입
 			var isSelected = false;
-			var bungaeSeq = dataSet.NameValue(j, "bungae_seq");
+			var bungaeSeq = dataSet.NameValue(j, "bungae_seq").val;
 			for(var k=0; k<bungaeSeqArr.length;k++){
 				if(bungaeSeq == bungaeSeqArr[k]) isSelected = true;
 			}
 			if(isSelected) continue;
-			
-			oehwaBal  = dataSet.NameValue   (j, "ju_oehwa_bal");
-			bal       = dataSet.NameValue   (j, "bal");
+
+			oehwaBal  = dataSet.NameValue   (j, "ju_oehwa_bal").val;
+			bal       = dataSet.NameValue   (j, "bal").val;
 			//정산대상 분개의 외화잔액이 정산할 외화금액 보다 크거나 같으면 ==> 종전원화금액 = 원화잔액 * 정산할외화금액 / 외화잔액
 			if(tempOehwaAmt<=oehwaBal){
 				jongjeonAmtSum = jongjeonAmtSum + jeolsaCo(bal * tempOehwaAmt/oehwaBal);
@@ -851,8 +795,8 @@ function getJongjeonAmtCo(oehwaAmt, dataSet){
 //-------------------------------------------------------------------
 function insertRowLuxecomboCo(dataSetId, codeColumn, nameColumn, nameColumnText){
 	dataSetId.InsertRow(1);
-	dataSetId.NameValue(1,codeColumn)="";
-	dataSetId.NameValue(1,nameColumn)=nameColumnText;
+	dataSetId.NameValue(1,codeColumn).val="";
+	dataSetId.NameValue(1,nameColumn).val=nameColumnText;
 }
 
 //추가,수정된 행이 있으면 true를 return하는 함수
@@ -872,7 +816,7 @@ function haveChangedRow(dataSetNm){
 function checkDuplicationCo(dataSetNm, columnNm, controlObj)  {
    var columnValue = controlObj.value;
    if(dataSetNm.NameValueRow(columnNm, columnValue)==0) return
-   if(dataSetNm.NameValueRow(columnNm, columnValue) != dataSetNm.RowPosition) {
+   if(dataSetNm.NameValueRow(columnNm, columnValue)!= dataSetNm.RowPosition) {
     alert("이미 등록 되어 있습니다");
     initFocusCo(controlObj);
    }
@@ -900,17 +844,17 @@ function checkDupDataCo(dataSetNm,colid,trName,dataSetNmChk,gubunName,ctrl,cls){
 	var tagNm		 = ctrl.tagName;
 	var chkData      = "";     
 	var orgNameValue = mainDataSet.OrgNameValue(mainDataSet.RowPosition,colid);
-	
+
 	if     (tagNm=="OBJECT") chkData = ctrl.Text;
 	else if(tagNm=="INPUT")  chkData = ctrl.value;
-	
+
 	if((orgNameValue==chkData)&&mainDataSet.SysStatus(mainDataSet.RowPosition)!=1) return;
 	if(chkData=="") return;
-	
+
 	dataSetCallCo(dataSetNmChk,checkTr,gubunName,chkData,cls);
-	
-	if(checkDataSet.NameValue(1,"name")!=""){
-		if(confirm(checkDataSet.NameValue(1,"name")+" \n위와 같은 동일한 데이터가 존재합니다. \n상관없이 입력하시겠습니까? ")) return;
+
+	if(checkDataSet.NameValue(1,"name").val!=""){
+		if(confirm(checkDataSet.NameValue(1,"name").val+" \n위와 같은 동일한 데이터가 존재합니다. \n상관없이 입력하시겠습니까? ")) return;
 	    else{	
 			if(mainDataSet.SysStatus(mainDataSet.RowPosition)== 1){
 				if     (tagNm=="OBJECT") ctrl.Text  = '';
@@ -939,7 +883,7 @@ function checkDupDatasetCallCo(dataSetNm,colid,trName,dataSetNmChk,gubunName,use
 	if(userCodeVal != ""){		//값이 없을때에 에러메세지 나오지 않게
 		dataSetCallCo(dataSetNmChk,trNameObj,gubunName,userCodeVal,cls);
 
-		if(dataSetNameChkObj.NameValue(1,"name")>="1"){
+		if(dataSetNameChkObj.NameValue(1,"name").val>="1"){
 			errorTextCo(duplicationCode);
 			if(dataSetNameObj.SysStatus(dataSetNameObj.RowPosition)== 1){
 				if(tagNm=="OBJECT") userCodeObj.Text = '';
@@ -949,9 +893,9 @@ function checkDupDatasetCallCo(dataSetNm,colid,trName,dataSetNmChk,gubunName,use
 				else if(tagNm=="INPUT") userCodeObj.value = orgNameValue;
 			}
 			userCodeObj.focus();
-			
+
 			return false;
-		}else if(dataSetNameChkObj.NameValue(1,"name")=="0"){
+		}else if(dataSetNameChkObj.NameValue(1,"name").val=="0"){
 			return;
 		}
 		return;
@@ -985,7 +929,7 @@ function checkDupNoGridCo2(dataSetNm, columnNm, controlObj, orgDataSetNm, orgCol
 		if(orgDataSetNm.SysStatus(orgDataSetNm.RowPosition)== 1) controlObj.value = "";
 		else controlObj.value = orgNameValue;
 		errorTextCo(duplicationCode);
-		
+
 		initFocusSelectCo(controlObj);
 		return false;
     }
@@ -999,8 +943,8 @@ function checkDupLuxecomboCo(dataSetNm, columnNm, luxeColumn, controlObj, remove
     if(dataSetNm.NameValueRow(columnNm, columnValue)==0) return
     if(dataSetNm.NameValueRow(columnNm, columnValue) != dataSetNm.RowPosition) {
 		alert("이미 등록 되어 있습니다");
-		dataSetNm.NameValue(dataSetNm.RowPosition,columnNm) = "";
-		dataSetNm.NameValue(dataSetNm.RowPosition,removeColumn) = "";
+		dataSetNm.NameValue(dataSetNm.RowPosition,columnNm).val = "";
+		dataSetNm.NameValue(dataSetNm.RowPosition,removeColumn).val = "";
 		controlObj.Select;
 		controlObj.Focus();
    }
@@ -1011,70 +955,74 @@ function checkDupLuxecomboCo(dataSetNm, columnNm, luxeColumn, controlObj, remove
 //-------------------------------------------------------------------
 //유효성 체크용 DataSet 로드
 function loadDataSetCreateCo(dataSetNm, trNm) {
-	document.write("<comment id='__NOSCRIPT_ID__'><object id="+dataSetNm+" classid=clsid:3267EA0D-B5D8-11D2-A4F9-00608CEBEE49 ></object></comment><SCRIPT>__ShowEmbedObject(__NOSCRIPT_ID__);</SCRIPT>");
-	document.write("<comment id='__NOSCRIPT_ID__'><object id="+trNm+"   classid=clsid:0A2233AD-E771-11D2-973D-00104B15E56F >");
-	document.write("	<param name=KeyName	 value=toinb_dataid4>");
-	document.write("	<param name=KeyValue value=JSP(O:"+dataSetNm+"="+dataSetNm+")>");
-	document.write("	<param name=Action	 value=/servlet/GateServlet>");
-	document.write("</object></comment><SCRIPT>__ShowEmbedObject(__NOSCRIPT_ID__);</SCRIPT>");
+	var ds = document.createElement("g5-dataset");
+	ds.id = dataSetNm;
+	document.head.appendChild(ds);
+	var tr = document.createElement("g5-tr");
+	tr.id = trNm;
+	tr.innerHTML = "<param name='KeyName' value='toinb_dataid4'><param name='KeyValue' value='JSP(O:"+dataSetNm+"="+dataSetNm+")'><param name='Action' value='/servlet/GateServlet'>";
+	document.head.appendChild(tr);
 }
 
 //DataSet 로드
 function loadDataSetCo(dataSetNm){
-	document.write("<comment id='__NOSCRIPT_ID__'><object id="+dataSetNm+" classid=clsid:3267EA0D-B5D8-11D2-A4F9-00608CEBEE49 ></object></comment><SCRIPT>__ShowEmbedObject(__NOSCRIPT_ID__);</SCRIPT>");
+	var ds = document.createElement("g5-dataset");
+	ds.id = dataSetNm;
+	document.head.appendChild(ds);
 }
 
 //input Tr 로드
 function loadInTrCo(trNm,dataSetNm){
-	document.write("<comment id='__NOSCRIPT_ID__'><object id="+trNm+" classid='clsid:0A2233AD-E771-11D2-973D-00104B15E56F' >");
-	document.write("	<param name=KeyName	  value=toinb_dataid4>");
-	document.write("	<param name=KeyValue  value=JSP(I:"+dataSetNm+"="+dataSetNm+")>");
-	document.write("	<param name=Action	  value=/servlet/GateServlet>");
-	document.write("</object></comment><SCRIPT>__ShowEmbedObject(__NOSCRIPT_ID__);</SCRIPT>");
-	document.write("<script language=javascript  for="+trNm+" event=OnSuccess()>");
-	document.write("	search();");
-	document.write("	trSuccessMsgCo();");
-	document.write("</script>");
-	document.write("<script language=javascript  for="+trNm+" event=OnFail()>");
-	document.write("	alert(this.SrvErrMsg('ServerErrMsg', 0));");
-	document.write("</script>");
+	var tr = document.createElement("g5-tr");
+	tr.id = trNm;
+	tr.innerHTML = "<param name='KeyName' value='toinb_dataid4'><param name='KeyValue' value='JSP(I:"+dataSetNm+"="+dataSetNm+")'><param name='Action' value='/servlet/GateServlet'>";
+	document.head.appendChild(tr);
+	
+	tr.OnSuccess = function(){
+		search();
+		trSuccessMsgCo();
+	}
+	tr.OnFail = function(){
+		alert(this.SrvErrMsg('ServerErrMsg', 0));
+	}
 }
 
 //output Tr 로드
 function loadOutTrCo(trNm,dataSetNm){
-	document.write("<comment id='__NOSCRIPT_ID__'><object id="+trNm+"   classid=clsid:0A2233AD-E771-11D2-973D-00104B15E56F >");
-	document.write("	<param name=KeyName	  value=toinb_dataid4>");
-	document.write("	<param name=KeyValue  value=JSP(O:"+dataSetNm+"="+dataSetNm+")>");
-	document.write("	<param name=Action	  value=/servlet/GateServlet>");
-	document.write("	<param name=protocol  value=1>");
-	document.write("</object></comment><SCRIPT>__ShowEmbedObject(__NOSCRIPT_ID__);</SCRIPT>");
-	document.write("<script language=javascript  for="+trNm+" event=OnSuccess()>");
-	document.write("	trSuccessMsgCo();");
-	document.write("</script>");
-	document.write("<script language=javascript  for="+trNm+" event=OnFail()>");
-	document.write("	alert(this.SrvErrMsg('ServerErrMsg', 0));");
-	document.write("</script>");
+	var tr = document.createElement("g5-tr");
+	tr.id = trNm;
+	tr.innerHTML = "<param name='KeyName' value='toinb_dataid4'><param name='KeyValue' value='JSP(O:"+dataSetNm+"="+dataSetNm+")'><param name='Action' value='/servlet/GateServlet'>";
+	document.head.appendChild(tr);
+
+	tr.OnSuccess = function(){
+		trSuccessMsgCo();
+	}
+	tr.OnFail = function(){
+		alert(this.SrvErrMsg('ServerErrMsg', 0));
+	}
 }
 
 //input Tr 이벤트 로드	
 function loadInTrEventCo(trNm){
-	document.write("<script language=javascript  for="+trNm+" event=OnSuccess()>");
-	document.write("	search();");
-	document.write("	trSuccessMsgCo();");
-	document.write("</script>");
-	document.write("<script language=javascript  for="+trNm+" event=OnFail()>");
-	document.write("	alert(this.SrvErrMsg('ServerErrMsg', 0));");
-	document.write("</script>");
+	var tr = document.getElementById(trNm);
+	tr.OnSuccess = function(){
+		search();
+		trSuccessMsgCo();
+	}
+	tr.OnFail = function(){
+		alert(this.SrvErrMsg('ServerErrMsg', 0));
+	}
 }
 
 //output Tr 이벤트 로드
 function loadOutTrEventCo(trNm){
-	document.write("<script language=javascript  for="+trNm+" event=OnSuccess()>");
-	document.write("	trSuccessMsgCo();");
-	document.write("</script>");
-	document.write("<script language=javascript  for="+trNm+" event=OnFail()>");
-	document.write("	alert(this.SrvErrMsg('ServerErrMsg', 0));");
-	document.write("</script>");
+	var tr = document.getElementById(trNm);
+	tr.OnSuccess = function(){
+		trSuccessMsgCo();
+	}
+	tr.OnFail = function(){
+		alert(this.SrvErrMsg('ServerErrMsg', 0));
+	}
 }
 //-------------------------------------------------------------------
 // filter를 사용할 DataSet이 필터링 되어있을결우 필터링을 초기화한다,.
@@ -1098,7 +1046,7 @@ function getGeoraeRegDataCo(param){
 //-------------------------------------------------------------------
 function checkDataSetCode(dataSetNm,row,columnNm,chkDataSetNm,chkColumnNm,changeColumnNm,chkColumnValue,popup) {
     if (chkColumnValue==""){
-		dataSetNm.NameValue(row, columnNm) = "";
+		dataSetNm.NameValue(row, columnNm).val = "";
    	 	return true;
    	}	  
    var columnIndex = chkDataSetNm.NameValueRow(chkColumnNm, chkColumnValue);
@@ -1115,7 +1063,7 @@ function checkDataSetCode(dataSetNm,row,columnNm,chkDataSetNm,chkColumnNm,change
 			}
 		}
 	}else{
-		dataSetNm.NameValue(row, columnNm) = chkDataSetNm.NameValue(columnIndex,changeColumnNm);
+		dataSetNm.NameValue(row, columnNm).val = chkDataSetNm.NameValue(columnIndex,changeColumnNm).val;
 		return true;
 	}
 }
@@ -1134,9 +1082,9 @@ function craeteGridBgColor(dataSetNm, fieldNm){
 	var str       = "bgcolor={decode("+fieldNm+",";
 	var count = 0;
 	for (var i=1;i<=rowCount;i++) {
-		if(tempValue != dataSetNm.NameValue(i,fieldNm)){
+		if(tempValue != dataSetNm.NameValue(i,fieldNm).val){
 			count++;
-			tempValue = dataSetNm.NameValue(i,fieldNm);
+			tempValue = dataSetNm.NameValue(i,fieldNm).val;
 			str+= "'"+tempValue +"','"+changeBgColor(count)+"',"
 		}
 	}
@@ -1148,7 +1096,7 @@ function craeteGridBgColor(dataSetNm, fieldNm){
 // 호출예) delEmptyRow(DataSetBa502,"u_acct_cd")
 //-------------------------------------------------------------------
 function delEmptyRow(dataSetNm, colunmNm){
-	if(dataSetNm.NameValue(dataSetNm.CountRow,colunmNm)==""){
+	if(dataSetNm.NameValue(dataSetNm.CountRow,colunmNm).val==""){
 		dataSetNm.DeleteRow(dataSetNm.CountRow);
 	}
 }
@@ -1156,23 +1104,23 @@ function delEmptyRow(dataSetNm, colunmNm){
 //	같은 거래번호들 중 맨처음 row번호
 //-------------------------------------------------------------------
 function getFirstRowPosCo(DataSet){
-	var uGeoraeSeq = DataSet.NameValue(DataSet.RowPosition,"u_georae_seq");
+	var uGeoraeSeq = DataSet.NameValue(DataSet.RowPosition,"u_georae_seq").val;
 	var i = DataSet.RowPosition;
 	while(true){
 		i = i-1;
 		if(i<1) return 1;
-		else if(uGeoraeSeq != DataSet.NameValue(i,"u_georae_seq")) return (i+1);
+		else if(uGeoraeSeq != DataSet.NameValue(i,"u_georae_seq").val) return (i+1);
 	}
 }
 //-------------------------------------------------------------------
 //	같은 거래번호들 중 맨 마지막 row번호
 //-------------------------------------------------------------------
 function getLastRowPosCo(DataSet){
-	var uGeoraeSeq = DataSet.NameValue(DataSet.RowPosition,"u_georae_seq");
+	var uGeoraeSeq = DataSet.NameValue(DataSet.RowPosition,"u_georae_seq").val;
 	var i = DataSet.RowPosition;
 	while(true){
 		i = i+1;
-		if(uGeoraeSeq != DataSet.NameValue(i,"u_georae_seq")) return (i-1);
+		if(uGeoraeSeq != DataSet.NameValue(i,"u_georae_seq").val) return (i-1);
 	}
 }
 //-------------------------------------------------------------------
@@ -1193,7 +1141,7 @@ function showDrCrAmtCo(srcDataSet, targetDataSet){
 		DataSetBaDrCrAmt.ClearData();
 	 	return;
 	} 	
-	
+
 	//소스 DataSet 조회 시작위치 와 종료위치
 	var startPos = getFirstRowPosCo(srcDataSet);
 	var endPos   = getLastRowPosCo(srcDataSet);
@@ -1202,8 +1150,8 @@ function showDrCrAmtCo(srcDataSet, targetDataSet){
 	var crCnt  =0;  //대변 data갯수
 	var rowCnt =0;
 	for(var i=startPos;i<=endPos;i++){
-		if     (srcDataSet.NameValue(i,"bungae_cls")=="1") drCnt++;
-	    else if(srcDataSet.NameValue(i,"bungae_cls")=="2") crCnt++;
+		if     (srcDataSet.NameValue(i,"bungae_cls").val=="1") drCnt++;
+	    else if(srcDataSet.NameValue(i,"bungae_cls").val=="2") crCnt++;
 	}
 
 	if(crCnt>drCnt) rowCnt = crCnt;
@@ -1216,13 +1164,13 @@ function showDrCrAmtCo(srcDataSet, targetDataSet){
 	var drInputPos = 1;
 	var crInputPos = 1;
 	for(var k=startPos;k<=endPos;k++){
-		if     (srcDataSet.NameValue(k,"bungae_cls")=="1"){
-		    targetDataSet.NameValue(drInputPos,	"dr_acct_nm") = srcDataSet.NameValue(k,"acct_nm");
-		    targetDataSet.NameValue(drInputPos,	"dr_amt")     = srcDataSet.NameValue(k,"amt");
+		if     (srcDataSet.NameValue(k,"bungae_cls").val=="1"){
+		    targetDataSet.NameValue(drInputPos,	"dr_acct_nm").val = srcDataSet.NameValue(k,"acct_nm").val;
+		    targetDataSet.NameValue(drInputPos,	"dr_amt").val     = srcDataSet.NameValue(k,"amt").val;
 			drInputPos++;
-	    }else if(srcDataSet.NameValue(k,"bungae_cls")=="2"){
-		    targetDataSet.NameValue(crInputPos,	"cr_acct_nm") = srcDataSet.NameValue(k,"acct_nm");
-		    targetDataSet.NameValue(crInputPos,	"cr_amt")     = srcDataSet.NameValue(k,"amt");
+	    }else if(srcDataSet.NameValue(k,"bungae_cls").val=="2"){
+		    targetDataSet.NameValue(crInputPos,	"cr_acct_nm").val = srcDataSet.NameValue(k,"acct_nm").val;
+		    targetDataSet.NameValue(crInputPos,	"cr_amt").val     = srcDataSet.NameValue(k,"amt").val;
 	    	crInputPos++;
 	    }
 	}	
@@ -1233,7 +1181,7 @@ function showDrCrAmtCo(srcDataSet, targetDataSet){
 function calcDrSumCo(DataSet){
 	var sum = 0;
 	for(var i=1; i<=DataSet.CountRow;i++){
-		 sum = sum+DataSet.NameValue(i,"dr_amt"); 
+		 sum = sum+DataSet.NameValue(i,"dr_amt").val; 
 	}
 	return sum;
 }
@@ -1243,7 +1191,7 @@ function calcDrSumCo(DataSet){
 function calcCrSumCo(DataSet){
 	var sum = 0;
 	for(var i=1; i<=DataSet.CountRow;i++){
-		 sum = sum+DataSet.NameValue(i,"cr_amt"); 
+		 sum = sum+DataSet.NameValue(i,"cr_amt").val; 
 	}
 	return sum;
 }
@@ -1306,8 +1254,8 @@ function checkHoegyekiAndSearchCo(){
 }
 // 현재 행의 삭제가능여부 체크 (거래번호가 null이나 0이아닌 행)
 function canThisRowDeleteCo(DataSet){
-	if(isNotNullCo(DataSet.NameValue(DataSet.RowPosition, "georae_seq"))&&
-	   DataSet.NameValue(DataSet.RowPosition, "georae_seq")!=0){
+	if(isNotNullCo(DataSet.NameValue(DataSet.RowPosition, "georae_seq").val)&&
+	   DataSet.NameValue(DataSet.RowPosition, "georae_seq").val!=0){
 	   	 return true;
 	}else{
 		 return false;
@@ -1371,7 +1319,7 @@ function getUSawonCdCo(){
 //특정 컬럼값의 행번호 찾기 - 입력,수정,삭제 후 마지막 작업 위치에 focus 하는데 사용
 function findRowPosByColValueCo(dataSet,colName,colValue){
 	for(var i=1; i<=dataSet.CountRow; i++){
-		if(dataSet.NameValue(i,colName)==colValue){
+		if(dataSet.NameValue(i,colName).val==colValue){
 			dataSet.RowPosition = i;
 			break;
 		}
@@ -1380,7 +1328,7 @@ function findRowPosByColValueCo(dataSet,colName,colValue){
 // 현재 사업장코드가 1인 ROW Control을 false, 아니면 true
 // 호출예) setControlByRowStatusCo(dataSetNm)   이벤트) OnRowPosChange
 function setControlByRowStatusSysWpidCo(dataSetNm) {
-	if(dataSetNm.NameValue(dataSetNm.RowPosition,"wp_id")==1){ 
+	if(dataSetNm.NameValue(dataSetNm.RowPosition,"wp_id").val==1){ 
 		setControlStatusCo('disabled');
 	}else{
 		setControlStatusCo('enable');
@@ -1401,9 +1349,9 @@ function changeSameRowToSpace(dataset,compCol,valueCol){
 	var currentRowValue = "";
 	var afterRowValue   = "";
 	for(i=1; i<dataset.CountRow; i++){
-		currentRowValue = dataset.NameValue(i,compCol);
-		afterRowValue   = dataset.NameValue(i+1,compCol);
-		if(currentRowValue==afterRowValue)	dataset.NameValue(i, valueCol) = '';
+		currentRowValue = dataset.NameValue(i,compCol).val;
+		afterRowValue   = dataset.NameValue(i+1,compCol).val;
+		if(currentRowValue==afterRowValue)	dataset.NameValue(i, valueCol).val = '';
 	}
 }
 //세목콘트롤 초기화
@@ -1415,18 +1363,18 @@ function setSemokDefaultCo(span, ds, luxe){
 }		
 //대변 세목 세팅(행을 변경하며 데이터를 읽는 OnRowPosChanged 이벤트 발생 시)
 function setCrSemokCo(span, ds, tr, luxe){
-	span.innerText =ds.NameValue(ds.RowPosition,"cr_acct_nm");
-	var crSemokCd = ds.NameValue(ds.RowPosition,"cr_semok_cd");
-	tr.Parameters = "jobId=JobBaSemok,uAcctCd="+ds.NameValue(ds.RowPosition,"u_cr_acct_cd");
+	span.innerText =ds.NameValue(ds.RowPosition,"cr_acct_nm").val;
+	var crSemokCd = ds.NameValue(ds.RowPosition,"cr_semok_cd").val;
+	tr.Parameters = "jobId=JobBaSemok,uAcctCd="+ds.NameValue(ds.RowPosition,"u_cr_acct_cd").val;
 	tr.post();
 	luxe.index=luxe.IndexOfColumn("semok_cd",crSemokCd);
 	luxe.enable = false;
 }	
 //차변 세목 세팅(행을 변경하며 데이터를 읽는 OnRowPosChanged 이벤트 발생 시)
 function setDrSemokCo(span, ds, tr, luxe){
-	span.innerText =ds.NameValue(ds.RowPosition,"dr_acct_nm");
-	var drSemokCd = ds.NameValue(ds.RowPosition,"dr_semok_cd");
-	tr.Parameters = "jobId=JobBaSemok,uAcctCd="+ds.NameValue(ds.RowPosition,"u_dr_acct_cd");
+	span.innerText =ds.NameValue(ds.RowPosition,"dr_acct_nm").val;
+	var drSemokCd = ds.NameValue(ds.RowPosition,"dr_semok_cd").val;
+	tr.Parameters = "jobId=JobBaSemok,uAcctCd="+ds.NameValue(ds.RowPosition,"u_dr_acct_cd").val;
 	tr.post();
 	luxe.index=luxe.IndexOfColumn("semok_cd",drSemokCd);
 	luxe.enable = false;
@@ -1434,8 +1382,8 @@ function setDrSemokCo(span, ds, tr, luxe){
 
 //세목 세팅(일반분개거래 같은 계정 컨트롤이 있는 화면에서  OnRowPosChanged 이벤트 발생 시)
 function setSemokCo(ds, tr, luxe){
-	var semokCd = ds.NameValue(ds.RowPosition,"semok_cd");
-	tr.Parameters = "jobId=JobBaSemok,uAcctCd="+ds.NameValue(ds.RowPosition,"u_acct_cd");
+	var semokCd = ds.NameValue(ds.RowPosition,"semok_cd").val;
+	tr.Parameters = "jobId=JobBaSemok,uAcctCd="+ds.NameValue(ds.RowPosition,"u_acct_cd").val;
 	tr.post();
 	luxe.index=luxe.IndexOfColumn("semok_cd",semokCd);
 	luxe.enable = false;
@@ -1454,8 +1402,8 @@ function gCheckAndGetNaeyeokCo(dataSet,uSawonCd,cls,uNaeyeokCd,popUp){
 	//alert(uSawonCd);
 	uNaeyeokCd = trimCo(uNaeyeokCd);
 	if(uNaeyeokCd==""){
-		dataSet.NameValue(dataSet.RowPosition, "naeyeok_cd") = "";
-		dataSet.NameValue(dataSet.RowPosition, "u_naeyeok_cd") = "";
+		dataSet.NameValue(dataSet.RowPosition, "naeyeok_cd").val = "";
+		dataSet.NameValue(dataSet.RowPosition, "u_naeyeok_cd").val = "";
 		return true;		
 	}else if(uNaeyeokCd!=""){
 		if(isNullCo(cls)){
@@ -1468,10 +1416,10 @@ function gCheckAndGetNaeyeokCo(dataSet,uSawonCd,cls,uNaeyeokCd,popUp){
 		params = params + ",uNaeyeokCd="+uNaeyeokCd;
 		tr_one_naeyeok.Parameters = params;
 		tr_one_naeyeok.post();
-	   
+
 	   if(DataSetBa3Fields.CountRow==1){
-			dataSet.NameValue(dataSet.RowPosition,"naeyeok_cd") = DataSetBa3Fields.NameValue(1,"code");
-			dataSet.NameValue(dataSet.RowPosition,"naeyeok") = DataSetBa3Fields.NameValue(1,"name");
+			dataSet.NameValue(dataSet.RowPosition,"naeyeok_cd").val = DataSetBa3Fields.NameValue(1,"code").val;
+			dataSet.NameValue(dataSet.RowPosition,"naeyeok").val = DataSetBa3Fields.NameValue(1,"name").val;
 			return true;
 		}else{
 			if(popUp==""){
@@ -1497,7 +1445,7 @@ function getNameCo(elmt, nameElmt){
 	DataSetBaElmtName.ClearData();
 	tr_elmt_name_r.Parameters = "jobId=JobBaCodeChk, taskCls=getNameByElmtId, elmtId="+elmt.id+",uCode="+elmt.value;
 	tr_elmt_name_r.post();
-	var eName = DataSetBaElmtName.NameValue(DataSetBaElmtName.RowPosition,"name");
+	var eName = DataSetBaElmtName.NameValue(DataSetBaElmtName.RowPosition,"name").val;
 	if(isNullCo(eName)){
 		errorMsgToTitleBarCo(" 등록되지 않은 코드입니다. ");
 		nameElmt.value = "";
